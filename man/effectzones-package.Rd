@@ -18,7 +18,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: drhrf \email{labinfos.uerj@gmail.com}
+\strong{Maintainer}: Hercules Freitas \email{hercules.freitas@uerj.br}
 
 }
 \keyword{internal}

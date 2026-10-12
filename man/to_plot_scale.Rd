@@ -38,8 +38,9 @@ or reference-population SD may be more appropriate.
 \code{log(OR) = d * pi / sqrt(3)} (Chinn 2000). This is an approximation
 that assumes an underlying logistic distribution; it is not the same
 mapping as \link[=es_benchmarks]{es_benchmarks("chen_or")}.
-\item \code{or}/\code{rr} with \code{scale = "log"}: zones are symmetric on the log scale
-around the null: a cut \code{c} gives boundaries \code{null / c} and \code{null * c}.
+\item \code{or}/\code{rr} with \code{scale = "log"}: zones are multiplicative around the
+null: a cut \code{c} gives boundaries \code{null / c} and \code{null * c} (symmetric
+on the log scale unless \code{cuts_lower} differs from \code{cuts}).
 Use with \code{null = 1} and a log axis (e.g. \code{\link[ggplot2:scale_continuous]{ggplot2::scale_x_log10()}}).
 \item \code{or}/\code{rr} with \code{scale = "identity"}: for an axis showing log ratios on
 a linear scale; cuts become \code{-log(c)} and \code{log(c)} around \code{null = 0}.

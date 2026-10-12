@@ -45,7 +45,11 @@ cut ("negligible") is a convention of this package.
 
 \code{"chen_or"} is tied to a 1\% event rate in the reference group: Chen et
 al. (2010) show that the odds ratio equivalent to a given d depends on
-the baseline risk, and is smaller when the baseline risk is higher.
+the baseline risk, and is smaller when the baseline risk is higher. Use
+\code{\link[=chen_or_thresholds]{chen_or_thresholds()}} for other baseline risks. Under their method the
+zones are not symmetric on the log scale: the published values are the
+boundaries above 1, and the boundaries below 1 (1/1.74, 1/4.28, 1/11.40)
+are computed by applying the method to negative d.
 }
 
 \examples{

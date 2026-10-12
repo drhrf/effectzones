@@ -54,6 +54,11 @@
 #' @param beyond `"flat"` (default): one colour beyond the MCID.
 #'   `"multiples"`: deepening colour at 2x and 3x the MCID.
 #' @param palette `"diverging"` (default), `"grey"`, or three colours.
+#' @param zone_labels Optional new names for the three zones: an unnamed
+#'   vector or list in the order harm, trivial, benefit
+#'   (`c("worse", "no important change", "better")`), or a named vector that
+#'   renames only some (`c(trivial = "no important change")`). With
+#'   `beyond = "multiples"` the graded zones reuse these names.
 #' @inheritParams geom_es_zones
 #' @return An object that can be added to a ggplot with `+`.
 #' @references
@@ -88,7 +93,8 @@ geom_mcid_zones <- function(mcid, sd = NULL, null = 0, softness = NULL,
                             palette = "diverging", alpha = 0.35,
                             orientation = "x", expand = FALSE, labels = FALSE,
                             label_size = 3, label_colour = "grey20",
-                            n_slices = 40, title = NULL, show.legend = NA, ...) {
+                            n_slices = 40, zone_labels = NULL, title = NULL,
+                            show.legend = NA, ...) {
   if (missing(mcid) || is.null(mcid)) {
     cli::cli_abort(c(
       "{.arg mcid} is required: there is no automatic MCID.",
@@ -108,11 +114,14 @@ geom_mcid_zones <- function(mcid, sd = NULL, null = 0, softness = NULL,
   check_common_args(orientation, alpha, expand, labels, label_size, n_slices)
   to_plot_scale(mcid, sd = sd)
   mcid_palette(palette)
+  role_labels <- resolve_zone_labels(
+    zone_labels, c(harm = "harm", trivial = "trivial", benefit = "benefit")
+  )
   new_zones("mcid", list(
     mcid = mcid, sd = sd, null = null, softness = softness, beyond = beyond,
     palette = palette, alpha = alpha, orientation = orientation,
     expand = expand, labels = labels, label_size = label_size,
     label_colour = label_colour, n_slices = n_slices, title = title,
-    show.legend = show.legend, dots = list(...)
+    role_labels = role_labels, show.legend = show.legend, dots = list(...)
   ))
 }

@@ -28,6 +28,13 @@ grid, which emmeans takes from the model. Grids of contrasts (from
 the model.
 }
 
+\code{pooled_sd()} always returns the residual SD when asked. In a one-way
+model it equals the pooled within-group SD, the usual denominator of
+Cohen's d. With several factors or covariates it is the SD left after
+removing them, so d computed from it is a partial standardised
+difference; \code{\link[=plot_contrasts]{plot_contrasts()}} therefore uses it automatically only for
+one-way models.
+
 The residual SD is one defensible choice, not the only one. When the
 thresholds were defined relative to another SD (e.g. the baseline SD of
 the outcome in the target population), supply that value as \code{sd}

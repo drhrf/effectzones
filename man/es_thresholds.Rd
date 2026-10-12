@@ -8,7 +8,8 @@ es_thresholds(
   cuts,
   labels,
   metric = c("d", "r", "eta2", "f", "or", "rr", "raw"),
-  source = NULL
+  source = NULL,
+  cuts_lower = NULL
 )
 }
 \arguments{
@@ -27,17 +28,24 @@ ratio) or \code{"raw"} (unstandardised units of the outcome).}
 \item{source}{Optional character string citing where the cuts come from.
 It is shown in the legend title, so keep it short or use the \code{title}
 argument of \code{\link[=geom_es_zones]{geom_es_zones()}}.}
+
+\item{cuts_lower}{Optional magnitudes for the side below the null when it
+differs from the side above (same length as \code{cuts}, same labels). A
+value \code{c} is drawn at \code{null - c}, or at \code{null / c} for ratio metrics.
+Defaults to \code{cuts} (symmetric zones).}
 }
 \value{
 An object of class \code{es_thresholds}: a list with elements \code{cuts},
-\code{labels}, \code{metric}, \code{source} and \code{title} (the short legend title).
+\code{cuts_lower}, \code{labels}, \code{metric}, \code{source} and \code{title} (the short legend
+title).
 }
 \description{
 Define the cut-points that separate effect-size magnitude zones
 ("negligible", "small", "medium", ...). The cut-points are positive
-magnitudes and are applied symmetrically around the null: a cut at \code{0.5}
-produces boundaries at \code{-0.5} and \code{+0.5} for additive metrics, and at
-\code{1/c} and \code{c} for ratio metrics (\code{"or"}, \code{"rr"}).
+magnitudes and, by default, are applied symmetrically around the null: a
+cut at \code{0.5} produces boundaries at \code{-0.5} and \code{+0.5} for additive
+metrics, and at \code{1/c} and \code{c} for ratio metrics (\code{"or"}, \code{"rr"}). Use
+\code{cuts_lower} when the two sides differ.
 }
 \details{
 These objects contain no data and make no claim about any estimate. They

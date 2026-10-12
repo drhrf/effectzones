@@ -18,6 +18,7 @@ geom_es_zones(
   label_size = 3,
   label_colour = "grey20",
   n_slices = 40,
+  zone_labels = NULL,
   title = NULL,
   show.legend = NA,
   ...
@@ -59,6 +60,12 @@ top (effect on the horizontal axis) or the right edge (vertical axis).}
 \item{n_slices}{Number of thin rectangles used to draw each soft
 transition.}
 
+\item{zone_labels}{Optional new names for the zones, for example
+\code{"below small"} instead of \code{"negligible"}. Either a character vector
+(or list) with one name per zone, from the null outwards
+(\code{c("below small", "small", "medium", "large")}), or a named vector
+that renames only some zones (\code{c(negligible = "below small")}).}
+
 \item{title}{Legend title. Defaults to the short source of the thresholds.}
 
 \item{show.legend}{Should the zone legend be shown?}
@@ -70,7 +77,8 @@ An object that can be added to a ggplot with \code{+}.
 }
 \description{
 Draws background bands for effect-size magnitude zones ("negligible",
-"small", "medium", ...), symmetric around the null, behind estimates and
+"small", "medium", ...) around the null (symmetric unless the thresholds
+set \code{cuts_lower}), behind estimates and
 confidence intervals. The layer draws a reference background only: it
 does not look at, classify or test any estimate.
 }

@@ -15,8 +15,9 @@
 #'   `log(OR) = d * pi / sqrt(3)` (Chinn 2000). This is an approximation
 #'   that assumes an underlying logistic distribution; it is not the same
 #'   mapping as [es_benchmarks("chen_or")][es_benchmarks()].
-#' * `or`/`rr` with `scale = "log"`: zones are symmetric on the log scale
-#'   around the null: a cut `c` gives boundaries `null / c` and `null * c`.
+#' * `or`/`rr` with `scale = "log"`: zones are multiplicative around the
+#'   null: a cut `c` gives boundaries `null / c` and `null * c` (symmetric
+#'   on the log scale unless `cuts_lower` differs from `cuts`).
 #'   Use with `null = 1` and a log axis (e.g. [ggplot2::scale_x_log10()]).
 #' * `or`/`rr` with `scale = "identity"`: for an axis showing log ratios on
 #'   a linear scale; cuts become `-log(c)` and `log(c)` around `null = 0`.
@@ -87,6 +88,7 @@ to_plot_scale.es_thresholds <- function(thresholds, sd = NULL, scale = c("identi
     if (scale == "identity") {
       if (is.null(sd)) return(x)
       x$cuts <- x$cuts * sd
+      x$cuts_lower <- x$cuts_lower * sd
       x$metric <- "raw"
       x$note <- paste0("d cut-points multiplied by SD = ", fmt_num(sd), ".")
       return(x)
@@ -95,6 +97,7 @@ to_plot_scale.es_thresholds <- function(thresholds, sd = NULL, scale = c("identi
       cli::cli_abort("{.arg sd} is not used when converting d to odds ratios; set {.code sd = NULL}.")
     }
     x$cuts <- exp(x$cuts * pi / sqrt(3))
+    x$cuts_lower <- exp(x$cuts_lower * pi / sqrt(3))
     x$metric <- "or"
     x$scale <- "log"
     x$note <- paste(
@@ -109,9 +112,10 @@ to_plot_scale.es_thresholds <- function(thresholds, sd = NULL, scale = c("identi
   }
   if (scale == "log") {
     x$scale <- "log"
-    x$note <- "Zones symmetric on the log scale: boundaries at null / c and null * c."
+    x$note <- "Multiplicative zones: boundaries at null / c and null * c."
   } else {
     x$cuts <- log(x$cuts)
+    x$cuts_lower <- log(x$cuts_lower)
     x$metric <- paste0("log_", metric)
     x$note <- "Cut-points on the log-ratio scale: boundaries at -log(c) and log(c)."
   }
@@ -148,6 +152,13 @@ to_plot_scale.mcid_thresholds <- function(thresholds, sd = NULL, scale = c("iden
 #'   `contrast()` or `pairs()`) do not keep it; use the `emmeans()` grid or
 #'   the model.
 #'
+#' `pooled_sd()` always returns the residual SD when asked. In a one-way
+#' model it equals the pooled within-group SD, the usual denominator of
+#' Cohen's d. With several factors or covariates it is the SD left after
+#' removing them, so d computed from it is a partial standardised
+#' difference; [plot_contrasts()] therefore uses it automatically only for
+#' one-way models.
+#'
 #' The residual SD is one defensible choice, not the only one. When the
 #' thresholds were defined relative to another SD (e.g. the baseline SD of
 #' the outcome in the target population), supply that value as `sd`
@@ -175,6 +186,12 @@ pooled_sd.default <- function(model, ...) {
 
 #' @export
 pooled_sd.lm <- function(model, ...) {
+  if (inherits(model, "glm")) {
+    cli::cli_abort(c(
+      "A {.cls glm} has no residual SD on the outcome scale.",
+      "i" = "Supply {.arg sd} explicitly."
+    ))
+  }
   s <- stats::sigma(model)
   if (!is.finite(s) || s <= 0) {
     cli::cli_abort("The model's residual SD is not a positive finite number.")

@@ -18,6 +18,7 @@ geom_mcid_zones(
   label_size = 3,
   label_colour = "grey20",
   n_slices = 40,
+  zone_labels = NULL,
   title = NULL,
   show.legend = NA,
   ...
@@ -55,6 +56,12 @@ top (effect on the horizontal axis) or the right edge (vertical axis).}
 
 \item{n_slices}{Number of thin rectangles used to draw each soft
 transition.}
+
+\item{zone_labels}{Optional new names for the three zones: an unnamed
+vector or list in the order harm, trivial, benefit
+(\code{c("worse", "no important change", "better")}), or a named vector that
+renames only some (\code{c(trivial = "no important change")}). With
+\code{beyond = "multiples"} the graded zones reuse these names.}
 
 \item{title}{Legend title. Defaults to the short source of the thresholds.}
 
