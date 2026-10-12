@@ -55,7 +55,7 @@ contrasts. For a one-way model `plot_contrasts()` uses the model's pooled
 within-group SD and says so; for anything more complex it asks you to
 choose the SD.
 
-```{r tukey-es}
+```{r tukey-es, fig.alt = "Forest plot of the three Tukey contrasts between tension levels in warpbreaks, with confidence intervals drawn over grey background bands marking negligible, small, medium and large Cohen's d zones."}
 library(effectzones)
 library(ggplot2)
 
@@ -72,7 +72,7 @@ An asymmetric MCID: deterioration at 5 breaks, improvement somewhere between
 6 and 10 breaks (say, two anchor studies that disagree). Fewer breaks are
 better. The uncertain threshold is drawn as a fade across its range.
 
-```{r tukey-mcid}
+```{r tukey-mcid, fig.alt = "The same Tukey contrasts drawn over orange harm, white trivial and blue benefit zones; the boundary between trivial and benefit fades across the uncertain MCID range."}
 mcid <- mcid_thresholds(
   lower = c(-10, -6), upper = 5,
   direction = "lower_better",
@@ -88,7 +88,7 @@ at a 1% baseline risk; `chen_or_thresholds()` computes them for any
 baseline risk. Under their method the zones below 1 are not mirror images
 of those above 1, and are drawn accordingly.
 
-```{r or, fig.height = 3.2}
+```{r or, fig.height = 3.2, fig.alt = "Odds-ratio forest plot on a log axis with four exposures, over grey effect-size zones that are not symmetric around an odds ratio of 1."}
 or <- data.frame(
   term = c("Exposure A", "Exposure B", "Exposure C", "Exposure D"),
   estimate = c(0.72, 1.45, 2.60, 5.10),
@@ -122,6 +122,6 @@ unsound (Welsh & Knight 2015; Sainani 2018). See
 
 The [package website](https://drhrf.github.io/effectzones/) has the
 reference, the guide *Reading estimates against zones*, and
-[*The mathematics behind effectzones*](https://drhrf.github.io/effectzones/articles/articles/mathematics.html),
+[*The mathematics behind effectzones*](https://drhrf.github.io/effectzones/articles/mathematics.html),
 which works through every calculation step by step with interactive
 examples.

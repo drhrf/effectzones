@@ -56,7 +56,7 @@ plot_contrasts(
 #>   Set `sd` in the zones layer to use a different SD.
 ```
 
-<img src="man/figures/README-tukey-es-1.png" width="100%" />
+<img src="man/figures/README-tukey-es-1.png" alt="Forest plot of the three Tukey contrasts between tension levels in warpbreaks, with confidence intervals drawn over grey background bands marking negligible, small, medium and large Cohen's d zones." width="100%" />
 
 ## The same contrasts over MCID zones
 
@@ -74,7 +74,7 @@ mcid <- mcid_thresholds(
 plot_contrasts(fit, zones = geom_mcid_zones(mcid, labels = TRUE))
 ```
 
-<img src="man/figures/README-tukey-mcid-1.png" width="100%" />
+<img src="man/figures/README-tukey-mcid-1.png" alt="The same Tukey contrasts drawn over orange harm, white trivial and blue benefit zones; the boundary between trivial and benefit fades across the uncertain MCID range." width="100%" />
 
 ## An odds-ratio forest plot on a log axis
 
@@ -100,7 +100,7 @@ ggplot(or, aes(estimate, term)) +
   theme_minimal()
 ```
 
-<img src="man/figures/README-or-1.png" width="100%" />
+<img src="man/figures/README-or-1.png" alt="Odds-ratio forest plot on a log axis with four exposures, over grey effect-size zones that are not symmetric around an odds ratio of 1." width="100%" />
 
 Add the zones layer **before** points and error bars so they are drawn
 on top. Zones do not change the axis limits unless you set
@@ -121,6 +121,6 @@ unsound (Welsh & Knight 2015; Sainani 2018). See
 The [package website](https://drhrf.github.io/effectzones/) has the
 reference, the guide *Reading estimates against zones*, and [*The
 mathematics behind
-effectzones*](https://drhrf.github.io/effectzones/articles/articles/mathematics.html),
+effectzones*](https://drhrf.github.io/effectzones/articles/mathematics.html),
 which works through every calculation step by step with interactive
 examples.
