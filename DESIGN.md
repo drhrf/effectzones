@@ -98,9 +98,13 @@ implemented and documented.
   relaxed in a scratch copy; GitHub Actions checks against current CRAN
   releases.
 * **vdiffr snapshots are per ggplot2 version** (`_snaps/ggplot2-X.Y/`).
-  Snapshot tests are skipped when no reference exists for the installed
-  version; set `EFFECTZONES_RECORD_SNAPSHOTS=true` and run the tests to
-  record them, then review with `testthat::snapshot_review()`.
+  References exist for ggplot2 3.4 (recorded in the development sandbox)
+  and 4.0 (recorded on GitHub Actions, ubuntu-latest, R 4.6.1, then
+  reviewed). Snapshot tests are skipped when no reference exists for the
+  installed version; to add one, run the tests with
+  `EFFECTZONES_RECORD_SNAPSHOTS=true` (and `CI=false`, since recent
+  testthat fails on new snapshots on CI) and review with
+  `testthat::snapshot_review()`.
 * Non-linear coordinate systems (`coord_polar()`, `coord_trans()`) are not
   tested.
 * Seams between transition slices: with semi-transparent fills, some PDF
