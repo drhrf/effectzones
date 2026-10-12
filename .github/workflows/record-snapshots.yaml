@@ -27,8 +27,12 @@ jobs:
       - name: Record snapshots
         env:
           EFFECTZONES_RECORD_SNAPSHOTS: 'true'
+          # testthat fails on new snapshots when CI is set; here new
+          # snapshots are the point.
+          CI: 'false'
         run: |
           devtools::test(stop_on_failure = TRUE)
+          print(list.files("tests/testthat/_snaps", recursive = TRUE))
           print(packageVersion("ggplot2"))
         shell: Rscript {0}
       - name: Commit snapshots
