@@ -1,4 +1,31 @@
-url: ~
+url: https://drhrf.github.io/effectzones/
 template:
   bootstrap: 5
 
+reference:
+  - title: Layers
+    contents:
+      - geom_es_zones
+      - geom_mcid_zones
+      - plot_contrasts
+  - title: Effect-size thresholds
+    contents:
+      - es_thresholds
+      - es_benchmarks
+  - title: MCID thresholds
+    contents:
+      - mcid_thresholds
+      - mcid_distribution
+  - title: Scale conversion
+    contents:
+      - to_plot_scale
+      - pooled_sd
+  - title: Package
+    contents:
+      - effectzones-package
+
+articles:
+  - title: Articles
+    navbar: ~
+    contents:
+      - effectzones
