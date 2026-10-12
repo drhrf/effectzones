@@ -150,11 +150,11 @@ ggplot(or, aes(estimate, term)) +
 }
 \references{
 Cohen J (1988). \emph{Statistical Power Analysis for the Behavioral Sciences},
-2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+2nd ed. Hillsdale, NJ: Lawrence Erlbaum. \doi{10.4324/9780203771587}
 
 Chinn S (2000). A simple method for converting an odds ratio to effect
 size for use in meta-analysis. \emph{Statistics in Medicine}
-19(22):3127-3131.
+19(22):3127-3131. \doi{10.1002/1097-0258(20001130)19:22<3127::AID-SIM784>3.0.CO;2-M}
 }
 \seealso{
 \code{\link[=geom_mcid_zones]{geom_mcid_zones()}}, \code{\link[=plot_contrasts]{plot_contrasts()}}

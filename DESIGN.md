@@ -54,7 +54,10 @@ implemented and documented.
   the null (`lower < 0 < upper`); `direction` decides which side is
   benefit. A length-2 value is an uncertain threshold, drawn as a fade
   across the range. `beyond = "multiples"` deepens the colour at 2x and 3x
-  the MCID (the midpoint, for ranges), capped at 3x.
+  the MCID, capped at 3x. It requires point thresholds: with a range MCID
+  the multiples would be uncertain as well, and sharp lines at 2x/3x would
+  overstate precision, so the combination is an error (decided by the
+  author over fading the multiples, which overlap for wide ranges).
 * **MCID default palette:** the muted blue/orange diverging palette
   (`"diverging"`), confirmed by the author; `"grey"` remains available with
   `labels = TRUE` recommended.
@@ -96,11 +99,6 @@ implemented and documented.
 
 ## Open questions
 
-* **Multiples for an uncertain (range) MCID.** Currently the 2x and 3x
-  boundaries sit at multiples of the range midpoint, with hard edges.
-  Alternatives under discussion: fade each multiple across the multiplied
-  range (2x and 3x the range), which overlaps for wide ranges; or omit
-  multiples when the MCID is a range.
 * Some users may prefer that `chen_or_thresholds()` also accept the
   baseline risk of the exposed group (i.e. odds ratios expressed the other
   way round); currently `baseline_risk` must refer to the reference
@@ -126,6 +124,7 @@ implemented and documented.
   tested.
 * Seams between transition slices: with semi-transparent fills, some PDF
   viewers may show hairlines between adjacent slices at extreme zoom.
-* DOIs are given only where they were verified against a bibliographic
-  record (Funder & Ozer 2019; Gignac & Szodorai 2016; Jaeschke et al.
-  1989). The author is adding the remaining DOIs.
+* DOIs for all cited references are included. Funder & Ozer (2019),
+  Gignac & Szodorai (2016) and Jaeschke et al. (1989) were verified against
+  bibliographic records during development; the others were supplied by
+  the author.

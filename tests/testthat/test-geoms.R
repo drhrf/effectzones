@@ -21,6 +21,13 @@ test_that("argument checks fail early", {
   expect_error(geom_es_zones(b, alpha = 2), "alpha")
   expect_error(geom_es_zones(es_benchmarks("cohen_r"), sd = 2), "own scale")
   expect_error(geom_mcid_zones(1, softness = -1), "softness")
+  expect_error(
+    geom_mcid_zones(mcid_thresholds(lower = -1, upper = c(2, 3)), beyond = "multiples"),
+    "needs point MCID thresholds"
+  )
+  expect_error(geom_mcid_zones(c(1, 2), beyond = "multiples"), "range")
+  expect_s3_class(geom_mcid_zones(mcid_thresholds(lower = -1, upper = c(2, 3))),
+                  "effectzones_zones")
 })
 
 test_that("zones do not change the axis range unless expand = TRUE", {

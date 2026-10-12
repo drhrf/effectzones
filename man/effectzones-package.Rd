@@ -6,7 +6,7 @@
 \alias{effectzones-package}
 \title{effectzones: Interpretive Background Zones for Estimates and Confidence Intervals}
 \description{
-A 'ggplot2' extension that draws interpretive background zones behind estimates and confidence intervals in forest plots, post-hoc contrast plots and coefficient plots. Two modes are provided: effect-size magnitude zones based on published benchmark sets (e.g. Cohen, 1988, ISBN:0-8058-0283-5) and clinical relevance zones based on a minimal clinically important difference (Jaeschke, Singer and Guyatt, 1989 \doi{10.1016/0197-2456(89)90005-6}). The package does not compute, classify or reinterpret inference; it only draws a background against which existing estimates and intervals are read.
+A 'ggplot2' extension that draws interpretive background zones behind estimates and confidence intervals in forest plots, post-hoc contrast plots and coefficient plots. Two modes are provided: effect-size magnitude zones based on published benchmark sets (e.g. Cohen, 1988, \doi{10.4324/9780203771587}) and clinical relevance zones based on a minimal clinically important difference (Jaeschke, Singer and Guyatt, 1989 \doi{10.1016/0197-2456(89)90005-6}). The package does not compute, classify or reinterpret inference; it only draws a background against which existing estimates and intervals are read.
 }
 \seealso{
 Useful links:

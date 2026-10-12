@@ -101,7 +101,10 @@ test_that("plot_contrasts() works with emmeans means and contrasts", {
 
   # A grid of means: pairwise contrasts are computed, and its SD is used
   expect_message(
-    pm <- plot_contrasts(em, zones = geom_es_zones(es_benchmarks("cohen_d"))),
+    expect_message(
+      pm <- plot_contrasts(em, zones = geom_es_zones(es_benchmarks("cohen_d"))),
+      "pairwise contrasts"
+    ),
     "pooled within-group"
   )
   expect_equal(sort(ggplot2::layer_data(pm, 3)$xmin), sort(ci$lower.CL))

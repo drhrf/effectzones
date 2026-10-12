@@ -41,7 +41,7 @@
 #' Clinical Trials* 10(4):407-415. \doi{10.1016/0197-2456(89)90005-6}
 #'
 #' McGlothlin AE, Lewis RJ (2014). Minimal clinically important difference:
-#' defining what really matters to patients. *JAMA* 312(13):1342-1343.
+#' defining what really matters to patients. *JAMA* 312(13):1342-1343. \doi{10.1001/jama.2014.13128}
 #' @seealso [mcid_distribution()], [geom_mcid_zones()]
 #' @export
 #' @examples
@@ -155,15 +155,15 @@ print.mcid_thresholds <- function(x, ...) {
 #' @references
 #' Norman GR, Sloan JA, Wyrwich KW (2003). Interpretation of changes in
 #' health-related quality of life: the remarkable universality of half a
-#' standard deviation. *Medical Care* 41(5):582-592.
+#' standard deviation. *Medical Care* 41(5):582-592. \doi{10.1097/01.mlr.0000062554.74615.4c}
 #'
 #' Wyrwich KW, Tierney WM, Wolinsky FD (1999). Further evidence supporting an
 #' SEM-based criterion for identifying meaningful intra-individual changes in
 #' health-related quality of life. *Journal of Clinical Epidemiology*
-#' 52(9):861-873.
+#' 52(9):861-873. \doi{10.1016/s0895-4356(99)00071-2}
 #'
 #' McGlothlin AE, Lewis RJ (2014). Minimal clinically important difference:
-#' defining what really matters to patients. *JAMA* 312(13):1342-1343.
+#' defining what really matters to patients. *JAMA* 312(13):1342-1343. \doi{10.1001/jama.2014.13128}
 #' @export
 #' @examples
 #' mcid_distribution(sd = 10)
@@ -175,7 +175,8 @@ mcid_distribution <- function(sd, method = c("half_sd", "sem", "one_fifth_sd"),
   method <- rlang::arg_match(method)
   caveat <- paste(
     "Distribution-based values are not patient-derived (McGlothlin AE, Lewis",
-    "RJ (2014). JAMA 312(13):1342-1343) and are provisional until an",
+    "RJ (2014). JAMA 312(13):1342-1343, doi:10.1001/jama.2014.13128) and are",
+    "provisional until an",
     "anchor-based MCID is available."
   )
   if (method == "sem") {
@@ -194,7 +195,7 @@ mcid_distribution <- function(sd, method = c("half_sd", "sem", "one_fifth_sd"),
       "One SEM = SD x sqrt(1 - reliability) = ", fmt_num(sd), " x sqrt(1 - ",
       fmt_num(reliability), ") = ", fmt_num(value), ". SEM-based criterion: ",
       "Wyrwich KW, Tierney WM, Wolinsky FD (1999). J Clin Epidemiol ",
-      "52(9):861-873. ", caveat
+      "52(9):861-873. doi:10.1016/s0895-4356(99)00071-2. ", caveat
     )
   } else {
     if (!is.null(reliability)) {
@@ -205,7 +206,8 @@ mcid_distribution <- function(sd, method = c("half_sd", "sem", "one_fifth_sd"),
     source <- if (method == "half_sd") {
       paste0(
         "Half SD = 0.5 x ", fmt_num(sd), " = ", fmt_num(value), ". Norman GR, ",
-        "Sloan JA, Wyrwich KW (2003). Med Care 41(5):582-592. Equal to ",
+        "Sloan JA, Wyrwich KW (2003). Med Care 41(5):582-592.",
+        " doi:10.1097/01.mlr.0000062554.74615.4c. Equal to ",
         "Cohen's 'medium' d = 0.5. ", caveat
       )
     } else {

@@ -73,7 +73,7 @@ ascertaining the minimal clinically important difference. \emph{Controlled
 Clinical Trials} 10(4):407-415. \doi{10.1016/0197-2456(89)90005-6}
 
 McGlothlin AE, Lewis RJ (2014). Minimal clinically important difference:
-defining what really matters to patients. \emph{JAMA} 312(13):1342-1343.
+defining what really matters to patients. \emph{JAMA} 312(13):1342-1343. \doi{10.1001/jama.2014.13128}
 }
 \seealso{
 \code{\link[=mcid_distribution]{mcid_distribution()}}, \code{\link[=geom_mcid_zones]{geom_mcid_zones()}}

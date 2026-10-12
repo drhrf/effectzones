@@ -296,8 +296,14 @@ share a background:
 
 ```{r multiples}
 plot_contrasts(TukeyHSD(fit),
-               zones = geom_mcid_zones(thr, beyond = "multiples"))
+               zones = geom_mcid_zones(mcid_thresholds(lower = -0.25, upper = 0.3),
+                                       beyond = "multiples"))
 ```
+
+Multiples need point thresholds. If the MCID itself is uncertain, so are
+its multiples (an MCID of 4 to 6 puts "2×" anywhere from 8 to 12), and
+sharp lines at 2× and 3× would claim a precision the MCID does not have, so
+`beyond = "multiples"` with a range is an error.
 
 If lower values of the outcome are better (pain, symptom scores), set
 `direction = "lower_better"` and the benefit and harm sides swap.
@@ -333,17 +339,17 @@ their source stated.
 
 Batterham AM, Hopkins WG (2006). Making meaningful inferences about
 magnitudes. *International Journal of Sports Physiology and Performance*
-1(1):50-57.
+1(1):50-57. doi:10.1123/ijspp.1.1.50
 
 Chen H, Cohen P, Chen S (2010). How big is a big odds ratio? Interpreting
 the magnitudes of odds ratios in epidemiological studies. *Communications
-in Statistics - Simulation and Computation* 39(4):860-864.
+in Statistics - Simulation and Computation* 39(4):860-864. doi:10.1080/03610911003650383
 
 Chinn S (2000). A simple method for converting an odds ratio to effect size
-for use in meta-analysis. *Statistics in Medicine* 19(22):3127-3131.
+for use in meta-analysis. *Statistics in Medicine* 19(22):3127-3131. doi:10.1002/1097-0258(20001130)19:22<3127::AID-SIM784>3.0.CO;2-M
 
 Cohen J (1988). *Statistical Power Analysis for the Behavioral Sciences*,
-2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587
 
 Funder DC, Ozer DJ (2019). Evaluating effect size in psychological
 research: sense and nonsense. *Advances in Methods and Practices in
@@ -358,22 +364,22 @@ ascertaining the minimal clinically important difference. *Controlled
 Clinical Trials* 10(4):407-415. doi:10.1016/0197-2456(89)90005-6
 
 McGlothlin AE, Lewis RJ (2014). Minimal clinically important difference:
-defining what really matters to patients. *JAMA* 312(13):1342-1343.
+defining what really matters to patients. *JAMA* 312(13):1342-1343. doi:10.1001/jama.2014.13128
 
 Norman GR, Sloan JA, Wyrwich KW (2003). Interpretation of changes in
 health-related quality of life: the remarkable universality of half a
-standard deviation. *Medical Care* 41(5):582-592.
+standard deviation. *Medical Care* 41(5):582-592. doi:10.1097/01.mlr.0000062554.74615.4c
 
 Sainani KL (2018). The problem with "magnitude-based inference". *Medicine
-& Science in Sports & Exercise* 50(10):2166-2176.
+& Science in Sports & Exercise* 50(10):2166-2176. doi:10.1249/mss.0000000000001645
 
 Sawilowsky SS (2009). New effect size rules of thumb. *Journal of Modern
-Applied Statistical Methods* 8(2):597-599.
+Applied Statistical Methods* 8(2):597-599. doi:10.22237/jmasm/1257035100
 
 Welsh AH, Knight EJ (2015). "Magnitude-based inference": a statistical
-review. *Medicine & Science in Sports & Exercise* 47(4):874-884.
+review. *Medicine & Science in Sports & Exercise* 47(4):874-884. doi:10.1249/mss.0000000000000451
 
 Wyrwich KW, Tierney WM, Wolinsky FD (1999). Further evidence supporting an
 SEM-based criterion for identifying meaningful intra-individual changes in
 health-related quality of life. *Journal of Clinical Epidemiology*
-52(9):861-873.
+52(9):861-873. doi:10.1016/s0895-4356(99)00071-2

@@ -60,7 +60,7 @@ chen_or_thresholds(0.20)
 \references{
 Chen H, Cohen P, Chen S (2010). How big is a big odds ratio? Interpreting
 the magnitudes of odds ratios in epidemiological studies. \emph{Communications
-in Statistics - Simulation and Computation} 39(4):860-864.
+in Statistics - Simulation and Computation} 39(4):860-864. \doi{10.1080/03610911003650383}
 }
 \seealso{
 \code{\link[=es_benchmarks]{es_benchmarks()}} (\code{"chen_or"}, the published 1\% values)

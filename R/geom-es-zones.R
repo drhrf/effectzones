@@ -74,11 +74,11 @@
 #' @return An object that can be added to a ggplot with `+`.
 #' @references
 #' Cohen J (1988). *Statistical Power Analysis for the Behavioral Sciences*,
-#' 2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+#' 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. \doi{10.4324/9780203771587}
 #'
 #' Chinn S (2000). A simple method for converting an odds ratio to effect
 #' size for use in meta-analysis. *Statistics in Medicine*
-#' 19(22):3127-3131.
+#' 19(22):3127-3131. \doi{10.1002/1097-0258(20001130)19:22<3127::AID-SIM784>3.0.CO;2-M}
 #' @seealso [geom_mcid_zones()], [plot_contrasts()]
 #' @export
 #' @examples

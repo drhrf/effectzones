@@ -36,7 +36,7 @@
 #' @references
 #' Chen H, Cohen P, Chen S (2010). How big is a big odds ratio? Interpreting
 #' the magnitudes of odds ratios in epidemiological studies. *Communications
-#' in Statistics - Simulation and Computation* 39(4):860-864.
+#' in Statistics - Simulation and Computation* 39(4):860-864. \doi{10.1080/03610911003650383}
 #' @seealso [es_benchmarks()] (`"chen_or"`, the published 1% values)
 #' @export
 #' @examples
@@ -57,7 +57,8 @@ chen_or_thresholds <- function(baseline_risk, d = c(0.2, 0.5, 0.8),
     source = paste0(
       "Odds ratios equivalent to d = ", paste(fmt_num(d), collapse = "/"),
       " at a ", pct, " baseline risk, by the method of Chen H, Cohen P, Chen S",
-      " (2010). Commun Stat Simul Comput 39(4):860-864. Boundaries below 1",
+      " (2010). Commun Stat Simul Comput 39(4):860-864,",
+      " doi:10.1080/03610911003650383. Boundaries below 1",
       " apply the method to negative d."
     )
   )

@@ -58,10 +58,10 @@ es_benchmarks("cohen_d")
 }
 \references{
 Cohen J (1988). \emph{Statistical Power Analysis for the Behavioral Sciences},
-2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+2nd ed. Hillsdale, NJ: Lawrence Erlbaum. \doi{10.4324/9780203771587}
 
 Sawilowsky SS (2009). New effect size rules of thumb. \emph{Journal of Modern
-Applied Statistical Methods} 8(2):597-599.
+Applied Statistical Methods} 8(2):597-599. \doi{10.22237/jmasm/1257035100}
 
 Funder DC, Ozer DJ (2019). Evaluating effect size in psychological
 research: sense and nonsense. \emph{Advances in Methods and Practices in
@@ -73,7 +73,7 @@ differences researchers. \emph{Personality and Individual Differences}
 
 Chen H, Cohen P, Chen S (2010). How big is a big odds ratio? Interpreting
 the magnitudes of odds ratios in epidemiological studies. \emph{Communications
-in Statistics - Simulation and Computation} 39(4):860-864.
+in Statistics - Simulation and Computation} 39(4):860-864. \doi{10.1080/03610911003650383}
 }
 \seealso{
 \code{\link[=es_thresholds]{es_thresholds()}}, \code{\link[=geom_es_zones]{geom_es_zones()}}

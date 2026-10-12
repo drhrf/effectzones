@@ -20,3 +20,7 @@
   and recovers the model behind a `TukeyHSD` object (verified against the
   contrasts). The model's residual SD is used automatically only for one-way
   models; otherwise `sd` must be given.
+* `geom_mcid_zones(beyond = "multiples")` now requires point MCID
+  thresholds; with a range MCID the multiples would be uncertain too, so the
+  combination is an error.
+* DOIs added for all cited references.

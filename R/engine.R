@@ -89,6 +89,7 @@ mcid_zone_spec <- function(thr, null, softness, beyond, palette, title = NULL,
 
   one_side <- function(thresh, side) {
     role <- side_name[[side]]
+    # A range (uncertain MCID) has no multiples; see geom_mcid_zones().
     at <- mean(thresh)
     first <- if (length(thresh) == 2) {
       data.frame(at = at, lo = min(thresh), hi = max(thresh))

@@ -137,7 +137,8 @@ benchmark_sets <- list(
     title = "Cohen (1988), d",
     source = paste(
       "Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,",
-      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. Cohen offered these values as",
+      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587. Cohen",
+      "offered these values as",
       "conventions for use only when no better basis for judging magnitude is",
       "available."
     )
@@ -150,7 +151,7 @@ benchmark_sets <- list(
     title = "Sawilowsky (2009), d",
     source = paste(
       "Sawilowsky SS (2009). New effect size rules of thumb. Journal of Modern",
-      "Applied Statistical Methods 8(2):597-599."
+      "Applied Statistical Methods 8(2):597-599. doi:10.22237/jmasm/1257035100."
     )
   ),
   cohen_r = list(
@@ -160,7 +161,7 @@ benchmark_sets <- list(
     title = "Cohen (1988), r",
     source = paste(
       "Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,",
-      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum."
+      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587."
     )
   ),
   funder_ozer_r = list(
@@ -195,7 +196,7 @@ benchmark_sets <- list(
     title = "Cohen (1988), \u{03b7}\u{00b2}",
     source = paste(
       "Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,",
-      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum."
+      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587."
     )
   ),
   cohen_f = list(
@@ -205,7 +206,7 @@ benchmark_sets <- list(
     title = "Cohen (1988), f",
     source = paste(
       "Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,",
-      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum."
+      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587."
     )
   ),
   chen_or = list(
@@ -221,7 +222,8 @@ benchmark_sets <- list(
       "Chen H, Cohen P, Chen S (2010). How big is a big odds ratio?",
       "Interpreting the magnitudes of odds ratios in epidemiological studies.",
       "Communications in Statistics - Simulation and Computation",
-      "39(4):860-864. These odds ratios correspond to d = 0.2, 0.5 and 0.8",
+      "39(4):860-864. doi:10.1080/03610911003650383. These odds ratios",
+      "correspond to d = 0.2, 0.5 and 0.8",
       "only when the event rate in the reference group is 1%; the equivalent",
       "odds ratios are smaller at higher baseline risks. The published values",
       "are for OR > 1; the boundaries below 1 (1/1.74, 1/4.28, 1/11.40) apply",
@@ -272,10 +274,10 @@ benchmark_sets <- list(
 #'   invisible character vector of set names.
 #' @references
 #' Cohen J (1988). *Statistical Power Analysis for the Behavioral Sciences*,
-#' 2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+#' 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. \doi{10.4324/9780203771587}
 #'
 #' Sawilowsky SS (2009). New effect size rules of thumb. *Journal of Modern
-#' Applied Statistical Methods* 8(2):597-599.
+#' Applied Statistical Methods* 8(2):597-599. \doi{10.22237/jmasm/1257035100}
 #'
 #' Funder DC, Ozer DJ (2019). Evaluating effect size in psychological
 #' research: sense and nonsense. *Advances in Methods and Practices in
@@ -287,7 +289,7 @@ benchmark_sets <- list(
 #'
 #' Chen H, Cohen P, Chen S (2010). How big is a big odds ratio? Interpreting
 #' the magnitudes of odds ratios in epidemiological studies. *Communications
-#' in Statistics - Simulation and Computation* 39(4):860-864.
+#' in Statistics - Simulation and Computation* 39(4):860-864. \doi{10.1080/03610911003650383}
 #' @seealso [es_thresholds()], [geom_es_zones()]
 #' @export
 #' @examples

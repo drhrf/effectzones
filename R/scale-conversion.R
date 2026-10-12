@@ -39,7 +39,7 @@
 #' @references
 #' Chinn S (2000). A simple method for converting an odds ratio to effect
 #' size for use in meta-analysis. *Statistics in Medicine*
-#' 19(22):3127-3131.
+#' 19(22):3127-3131. \doi{10.1002/1097-0258(20001130)19:22<3127::AID-SIM784>3.0.CO;2-M}
 #' @export
 #' @examples
 #' to_plot_scale(es_benchmarks("cohen_d"), sd = 2)

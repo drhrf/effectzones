@@ -38,7 +38,8 @@ standardised differences.}
 fraction of each point threshold over which to fade.}
 
 \item{beyond}{\code{"flat"} (default): one colour beyond the MCID.
-\code{"multiples"}: deepening colour at 2x and 3x the MCID.}
+\code{"multiples"}: deepening colour at 2x and 3x the MCID (point thresholds
+only).}
 
 \item{palette}{\code{"diverging"} (default), \code{"grey"}, or three colours.}
 
@@ -107,8 +108,11 @@ threshold.
 
 With \code{beyond = "multiples"} the colour keeps deepening at 2 and 3 times
 the MCID (capped at 3), so that an estimate at 1.2 x MCID and one at 4 x
-MCID sit on visibly different backgrounds. Multiples are of the midpoint
-when the MCID is a range.
+MCID sit on visibly different backgrounds. Multiples require point
+thresholds: if the MCID is a range, its multiples are uncertain too (a
+4-6 MCID puts "2x" anywhere from 8 to 12), and drawing them as sharp
+lines would overstate precision. \code{beyond = "multiples"} with a range is
+therefore an error.
 }
 
 \section{Palettes}{
@@ -148,7 +152,7 @@ ascertaining the minimal clinically important difference. \emph{Controlled
 Clinical Trials} 10(4):407-415. \doi{10.1016/0197-2456(89)90005-6}
 
 McGlothlin AE, Lewis RJ (2014). Minimal clinically important difference:
-defining what really matters to patients. \emph{JAMA} 312(13):1342-1343.
+defining what really matters to patients. \emph{JAMA} 312(13):1342-1343. \doi{10.1001/jama.2014.13128}
 }
 \seealso{
 \code{\link[=mcid_thresholds]{mcid_thresholds()}}, \code{\link[=mcid_distribution]{mcid_distribution()}}, \code{\link[=geom_es_zones]{geom_es_zones()}}

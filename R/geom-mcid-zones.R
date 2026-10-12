@@ -30,8 +30,11 @@
 #'
 #' With `beyond = "multiples"` the colour keeps deepening at 2 and 3 times
 #' the MCID (capped at 3), so that an estimate at 1.2 x MCID and one at 4 x
-#' MCID sit on visibly different backgrounds. Multiples are of the midpoint
-#' when the MCID is a range.
+#' MCID sit on visibly different backgrounds. Multiples require point
+#' thresholds: if the MCID is a range, its multiples are uncertain too (a
+#' 4-6 MCID puts "2x" anywhere from 8 to 12), and drawing them as sharp
+#' lines would overstate precision. `beyond = "multiples"` with a range is
+#' therefore an error.
 #'
 #' @section Palettes:
 #' The default `"diverging"` palette uses muted blue (benefit) and orange
@@ -52,7 +55,8 @@
 #' @param softness `NULL` (hard edges unless the MCID is a range) or a
 #'   fraction of each point threshold over which to fade.
 #' @param beyond `"flat"` (default): one colour beyond the MCID.
-#'   `"multiples"`: deepening colour at 2x and 3x the MCID.
+#'   `"multiples"`: deepening colour at 2x and 3x the MCID (point thresholds
+#'   only).
 #' @param palette `"diverging"` (default), `"grey"`, or three colours.
 #' @param zone_labels Optional new names for the three zones: an unnamed
 #'   vector or list in the order harm, trivial, benefit
@@ -67,7 +71,7 @@
 #' Clinical Trials* 10(4):407-415. \doi{10.1016/0197-2456(89)90005-6}
 #'
 #' McGlothlin AE, Lewis RJ (2014). Minimal clinically important difference:
-#' defining what really matters to patients. *JAMA* 312(13):1342-1343.
+#' defining what really matters to patients. *JAMA* 312(13):1342-1343. \doi{10.1001/jama.2014.13128}
 #' @seealso [mcid_thresholds()], [mcid_distribution()], [geom_es_zones()]
 #' @export
 #' @examples
@@ -108,6 +112,13 @@ geom_mcid_zones <- function(mcid, sd = NULL, null = 0, softness = NULL,
     cli::cli_abort("{.arg mcid} must be an {.cls mcid_thresholds} object or a positive number.")
   }
   beyond <- rlang::arg_match(beyond)
+  if (beyond == "multiples" && (length(mcid$lower) == 2 || length(mcid$upper) == 2)) {
+    cli::cli_abort(c(
+      "{.code beyond = \"multiples\"} needs point MCID thresholds, but this MCID is a range.",
+      "i" = "Multiples of an uncertain MCID are uncertain too (a 4 to 6 MCID puts 2x anywhere from 8 to 12); drawing them as sharp lines would overstate precision.",
+      "i" = "Use {.code beyond = \"flat\"}, or give point thresholds."
+    ))
+  }
   orientation <- rlang::arg_match(orientation, c("x", "y"))
   check_null(null)
   check_softness(softness, allow_null = TRUE)
