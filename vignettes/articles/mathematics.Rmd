@@ -35,6 +35,58 @@ swatch <- function(col) {
 step <- function(text, math = NULL, note = NULL) {
   list(text = text, math = math, note = note)
 }
+# Evaluate a snippet as a reader would, top to bottom, and keep what R would
+# show: printed values, messages and plots (embedded as PNG data URIs).
+run_snippet <- function(code) {
+  env <- new.env(parent = globalenv())
+  out <- list()
+  add_text <- function(lines, type = "text") {
+    lines <- lines[nzchar(lines)]
+    if (length(lines)) out[[length(out) + 1]] <<- list(type = type, text = lines)
+  }
+  capture <- function(expr) {
+    msgs <- character()
+    printed <- withCallingHandlers(
+      utils::capture.output(res <- expr),
+      message = function(m) {
+        msgs <<- c(msgs, sub("\\n$", "", conditionMessage(m)))
+        invokeRestart("muffleMessage")
+      }
+    )
+    list(printed = printed, msgs = unlist(strsplit(msgs, "\n")))
+  }
+  for (e in parse(text = code)) {
+    vis <- NULL
+    r <- capture(vis <- withVisible(eval(e, env)))
+    add_text(r$printed); add_text(r$msgs, "message")
+    if (!vis$visible) next
+    if (inherits(vis$value, "ggplot")) {
+      rows <- tryCatch(length(unique(vis$value$data$term)), error = function(e) 3)
+      if (!rows) rows <- 3
+      f <- tempfile(fileext = ".png")
+      r <- capture(ggplot2::ggsave(f, vis$value, width = 7, height = 1.3 + 0.55 * rows,
+                                   dpi = 110, bg = "white"))
+      add_text(r$msgs, "message")
+      out[[length(out) + 1]] <- list(type = "plot", uri = knitr::image_uri(f))
+    } else {
+      r <- capture(print(vis$value))
+      add_text(c(r$printed, r$msgs))
+    }
+  }
+  out
+}
+run_html <- function(code) {
+  parts <- vapply(run_snippet(code), function(o) {
+    if (o$type == "plot") {
+      sprintf('<img class="ez-plot" src="%s" alt="Plot produced by the code above">', o$uri)
+    } else {
+      sprintf('<pre class="ez-console%s"><code>%s</code></pre>',
+              if (o$type == "message") " ez-message" else "",
+              esc(paste0("#> ", o$text, collapse = "\n")))
+    }
+  }, character(1))
+  paste(parts, collapse = "")
+}
 stepper <- function(id, title, given, steps, code = NULL) {
   li <- vapply(seq_along(steps), function(i) {
     s <- steps[[i]]
@@ -52,7 +104,11 @@ stepper <- function(id, title, given, steps, code = NULL) {
     '<div class="ez-given"><span class="ez-given-label">Given</span> ', given, "</div>",
     '<ol class="ez-steps">', paste(li, collapse = ""), "</ol>",
     if (!is.null(code)) paste0('<div class="ez-code"><span class="ez-given-label">In R</span><pre><code>',
-                               esc(code), "</code></pre></div>"),
+                               esc(code), "</code></pre>",
+                               '<button type="button" class="btn btn-sm btn-success ez-run">&#9654; Run code</button>',
+                               '<div class="ez-output" hidden>', run_html(code),
+                               '<div class="ez-output-note">Output produced by R when this page was built.</div>',
+                               "</div></div>"),
     '<div class="ez-controls">',
     '<button type="button" class="btn btn-sm btn-outline-secondary ez-prev">&larr; Back</button>',
     '<span class="ez-count" aria-live="polite"></span>',
@@ -65,6 +121,83 @@ stepper <- function(id, title, given, steps, code = NULL) {
   )
   knitr::asis_output(paste0("\n```{=html}\n", html, "\n```\n"))
 }
+```
+
+```{r snippets, include = FALSE}
+# Self-contained code shown at the end of each calculator. "Run code" reveals
+# the output of evaluating it here, when the page is built.
+or_df <- 'or <- data.frame(
+  term = c("Exposure A", "Exposure B", "Exposure C", "Exposure D"),
+  estimate = c(0.72, 1.45, 2.60, 5.10),
+  lower = c(0.48, 1.02, 1.55, 2.30),
+  upper = c(1.08, 2.06, 4.36, 11.3)
+)'
+or_plot <- function(zones) paste0('ggplot(or, aes(estimate, term)) +
+  ', zones, ' +
+  geom_vline(xintercept = 1, linetype = 2) +
+  geom_errorbar(aes(xmin = lower, xmax = upper), width = 0.2) +
+  geom_point() +
+  scale_x_log10() +
+  labs(x = "Odds ratio (95% CI)", y = NULL) +
+  theme_minimal()')
+plant <- "fit <- aov(weight ~ group, data = PlantGrowth)"
+snips <- list(
+  pooled = paste(plant,
+    "pooled_sd(fit)",
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d")))', sep = "\n"),
+  d2raw = paste(plant,
+    'to_plot_scale(es_benchmarks("cohen_d"), sd = pooled_sd(fit))',
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d"), labels = TRUE))', sep = "\n"),
+  co2 = paste(
+    "fit <- aov(uptake ~ Treatment + Type, data = subset(CO2, conc == 1000))",
+    "pooled_sd(fit)                          # residual SD: origin removed",
+    "pooled_sd(update(fit, . ~ Treatment))   # generalized standardizer",
+    'plot_contrasts(fit, which = "Treatment",',
+    '  zones = geom_es_zones(es_benchmarks("cohen_d"), labels = TRUE,',
+    '                        sd = pooled_sd(update(fit, . ~ Treatment))))', sep = "\n"),
+  sdci = paste(plant,
+    "s <- pooled_sd(fit); nu <- fit$df.residual",
+    "ci <- s * sqrt(nu / qchisq(c(0.975, 0.025), nu))",
+    "ci",
+    "# the same benchmarks drawn at each end of the SD's interval",
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d"), sd = ci[1]))',
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d"), sd = ci[2]))', sep = "\n"),
+  soft = paste(plant,
+    "# hard edges, then the default softness, then a wide transition",
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d"), softness = 0))',
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d"), softness = 0.1))',
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d"), softness = 0.5))', sep = "\n"),
+  ratio = paste("library(ggplot2)", or_df,
+    'thr <- es_thresholds(c(1.68, 3.47, 6.71),',
+    '                     c("negligible", "small", "medium", "large"), metric = "or")',
+    or_plot('geom_es_zones(thr, scale = "log", null = 1, labels = TRUE)'), sep = "\n"),
+  chinn = paste("library(ggplot2)",
+    'to_plot_scale(es_benchmarks("cohen_d"), scale = "log")$cuts', or_df,
+    or_plot('geom_es_zones(es_benchmarks("cohen_d"), scale = "log", null = 1, labels = TRUE)'), sep = "\n"),
+  chen = paste("library(ggplot2)",
+    "chen_or_thresholds(0.01)   # any baseline risk, e.g. chen_or_thresholds(0.2)", or_df,
+    or_plot('geom_es_zones(chen_or_thresholds(0.01), scale = "log", null = 1, labels = TRUE)'), sep = "\n"),
+  mciddist = paste(
+    'mcid <- mcid_distribution(sd = 10, method = "sem", reliability = 0.84)',
+    "mcid",
+    "trial <- data.frame(term = c(\"Dose 1\", \"Dose 2\", \"Dose 3\"),",
+    "                    estimate = c(1.5, 4.8, 9.2),",
+    "                    lower = c(-2.1, 1.0, 5.3), upper = c(5.1, 8.6, 13.1))",
+    "plot_contrasts(trial, zones = geom_mcid_zones(mcid, labels = TRUE))", sep = "\n"),
+  mcidzones = paste(plant,
+    'plot_contrasts(fit, zones = geom_mcid_zones(',
+    '  mcid_thresholds(lower = -0.25, upper = 0.3), beyond = "multiples"))',
+    'plot_contrasts(fit, zones = geom_mcid_zones(',
+    '  mcid_thresholds(lower = -0.25, upper = c(0.3, 0.5)), labels = TRUE))', sep = "\n"),
+  tukey = paste(plant,
+    "TukeyHSD(fit)",
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d")))', sep = "\n"),
+  panel = paste(plant,
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d")))            # all four zones',
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d"), sd = 3))    # "large" out of view',
+    'plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d"), sd = 3,',
+    '                                          expand = TRUE))                     # every zone shown', sep = "\n")
+)
 ```
 
 ```{=html}
@@ -85,6 +218,14 @@ stepper <- function(id, title, given, steps, code = NULL) {
 .ez-note { font-size: .88em; color: var(--bs-secondary-color, #6c757d); }
 .ez-code { margin-top: .6em; }
 .ez-code pre { margin: .2em 0 0; }
+.ez-run { margin-top: .5em; }
+.ez-output { margin-top: .6em; border-top: 1px dashed var(--bs-border-color, #dee2e6); padding-top: .6em; }
+.ez-console { background: transparent; border: 0; padding: .1em 0; margin: 0 0 .4em; font-size: .85em; }
+.ez-console code { color: var(--bs-body-color, #212529); background: transparent; }
+.ez-console.ez-message code { color: var(--bs-secondary-color, #6c757d); }
+.ez-plot { display: block; max-width: 100%; height: auto; margin: .3em 0 .7em;
+  border: 1px solid var(--bs-border-color, #dee2e6); border-radius: .3em; }
+.ez-output-note { font-size: .8em; color: var(--bs-secondary-color, #6c757d); }
 .ez-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .4em; margin-top: .7em; }
 .ez-count { font-size: .85em; color: var(--bs-secondary-color, #6c757d); min-width: 7.5em; text-align: center; }
 .ez-progress { height: 3px; background: var(--bs-border-color, #dee2e6); border-radius: 2px; margin-top: .5em; }
@@ -124,6 +265,23 @@ stepper <- function(id, title, given, steps, code = NULL) {
     var all = box.querySelector(".ez-all"), reset = box.querySelector(".ez-reset");
     var count = box.querySelector(".ez-count"), bar = box.querySelector(".ez-bar");
     var code = box.querySelector(".ez-code");
+    var run = box.querySelector(".ez-run"), output = box.querySelector(".ez-output");
+    function hideOutput() {
+      if (!output) return;
+      output.hidden = true;
+      run.disabled = false;
+      run.innerHTML = "\u25B6 Run code";
+    }
+    if (run) run.addEventListener("click", function () {
+      if (!output.hidden) return hideOutput();
+      run.disabled = true;
+      run.textContent = "Running\u2026";
+      setTimeout(function () {
+        output.hidden = false;
+        run.disabled = false;
+        run.textContent = "Hide output";
+      }, 450);
+    });
     function show() {
       for (var i = 0; i < n; i++) {
         steps[i].classList.toggle("ez-hidden", i >= k);
@@ -139,7 +297,7 @@ stepper <- function(id, title, given, steps, code = NULL) {
     next.addEventListener("click", function () { if (k < n) { k++; show(); } });
     prev.addEventListener("click", function () { if (k > 1) { k--; show(); } });
     all.addEventListener("click", function () { k = n; show(); });
-    reset.addEventListener("click", function () { k = 1; show(); });
+    reset.addEventListener("click", function () { k = 1; hideOutput(); show(); });
     show();
   }
   document.addEventListener("DOMContentLoaded", function () {
@@ -208,7 +366,7 @@ stepper("sd-pooled", "Pooled SD of the PlantGrowth one-way ANOVA",
          sprintf("s_p = \\sqrt{%s} = %s", nt(mse, 5), nt(sp, 4)),
          note = "It equals the residual SD of the fitted model, sigma(fit).")
   ),
-  code = "fit <- aov(weight ~ group, data = PlantGrowth)\npooled_sd(fit)"
+  code = snips$pooled
 )
 ```
 
@@ -236,7 +394,7 @@ stepper("d-to-raw", "Cohen's d benchmarks behind the PlantGrowth contrasts",
          sprintf("\\underbrace{|x| < %s}_{\\text{negligible}}\\;\\;\\underbrace{%s \\le |x| < %s}_{\\text{small}}\\;\\;\\underbrace{%s \\le |x| < %s}_{\\text{medium}}\\;\\;\\underbrace{|x| \\ge %s}_{\\text{large}}",
                  nt(raw[1]), nt(raw[1]), nt(raw[2]), nt(raw[2]), nt(raw[3]), nt(raw[3])))
   ),
-  code = "to_plot_scale(es_benchmarks(\"cohen_d\"), sd = pooled_sd(fit))"
+  code = snips$d2raw
 )
 ```
 
@@ -275,12 +433,7 @@ stepper("sd-generalized", "Chilling (manipulated) and plant origin (measured) in
          sprintf("0.5 \\times %s = %s \\ \\mu\\text{mol/m}^2\\text{s} \\quad\\text{vs.}\\quad 0.5 \\times %s = %s", nt(s_full), nt(0.5 * s_full), nt(s_manip), nt(0.5 * s_manip)),
          note = "Only the second matches what \"half a standard deviation between plants\" means.")
   ),
-  code = paste0(
-    "fit <- aov(uptake ~ Treatment + Type, data = subset(CO2, conc == 1000))\n",
-    "plot_contrasts(fit, which = \"Treatment\",\n",
-    "  zones = geom_es_zones(es_benchmarks(\"cohen_d\"),\n",
-    "                        sd = pooled_sd(update(fit, . ~ Treatment))))"
-  )
+  code = snips$co2
 )
 ```
 
@@ -329,10 +482,7 @@ stepper("sd-ci", "95% confidence interval for the PlantGrowth SD",
          sprintf("0.5 \\times [%s,\\ %s] = [%s,\\ %s]\\ \\text{kg}", nt(s_lo), nt(s_hi), nt(0.5 * s_lo), nt(0.5 * s_hi)),
          note = sprintf("A point boundary at %s kg hides that spread.", n(0.5 * sp)))
   ),
-  code = paste0(
-    "s <- pooled_sd(fit); nu <- fit$df.residual\n",
-    "s * sqrt(nu / qchisq(c(0.975, 0.025), nu))"
-  )
+  code = snips$sdci
 )
 ```
 
@@ -381,7 +531,7 @@ stepper("soft", "The soft boundary between \"small\" and \"medium\" (PlantGrowth
                 "slice 1", swatch(cols[1]), " &nbsp; slice 20", swatch(cols[2]), " &nbsp; slice 40", swatch(cols[3])),
          note = "Each slice is then drawn with the layer's alpha (0.35 by default), so the gridlines and estimates stay visible.")
   ),
-  code = "geom_es_zones(es_benchmarks(\"cohen_d\"), sd = pooled_sd(fit),\n              softness = 0.1, n_slices = 40)"
+  code = snips$soft
 )
 ```
 
@@ -407,7 +557,7 @@ stepper("ratio", "Placing the first Chen et al. odds-ratio boundary on a log axi
          sprintf("\\log_{10}(%s) = %s, \\qquad \\log_{10}(%s) = %s", nt(1 / c1), nt(log10(1 / c1)), c1, nt(log10(c1))),
          note = "Section 8 shows why, under Chen et al.'s own model, the lower boundary is not exactly 1/c.")
   ),
-  code = "geom_es_zones(es_thresholds(c(1.68, 3.47, 6.71), c(\"negligible\", \"small\", \"medium\", \"large\"),\n                            metric = \"or\"), scale = \"log\", null = 1) +\n  scale_x_log10()"
+  code = snips$ratio
 )
 ```
 
@@ -436,7 +586,7 @@ stepper("chinn", "A \"medium\" d = 0.5 as an odds ratio (Chinn 2000)",
     step("Exponentiate.", sprintf("\\mathrm{OR} = e^{%s} = %s", nt(lor, 5), nt(exp(lor))),
          note = "Compare Chen et al. at a 1% baseline: 3.47 (next section).")
   ),
-  code = "to_plot_scale(es_benchmarks(\"cohen_d\"), scale = \"log\")$cuts"
+  code = snips$chinn
 )
 ```
 
@@ -479,7 +629,7 @@ stepper("chen", "The \"large\" boundaries (d = \u00b10.8) at a 1% baseline risk"
          sprintf("\\mathrm{OR} = \\frac{%s/(1-%s)}{0.01/0.99} = %s = 1/%s", nt(p1m, 4), nt(p1m, 4), nt(or_dn, 4), nt(1 / or_dn, 4)),
          note = sprintf("Mirroring would have put this boundary at 1/%s = %s, so the protective \"large\" zone would start too close to 1.", n(or_up), n(1 / or_up)))
   ),
-  code = "chen_or_thresholds(0.01)   # any baseline risk: chen_or_thresholds(0.2)"
+  code = snips$chen
 )
 ```
 
@@ -512,7 +662,7 @@ stepper("mcid-dist", "Half-SD and SEM for a score with SD 10 and reliability 0.8
          sprintf("\\text{harm} < %s \\le \\text{trivial} \\le %s < \\text{benefit}", nt(-sem$upper), nt(sem$upper)),
          note = "The legend then reads \"MCID (provisional, distribution-based)\".")
   ),
-  code = "mcid_distribution(sd = 10, method = \"sem\", reliability = 0.84)"
+  code = snips$mciddist
 )
 ```
 
@@ -545,7 +695,7 @@ stepper("mcid-zones", "Zones for an asymmetric MCID (\u22120.25 / +0.3, higher i
          "0.3 \\le x \\le 0.5:\\ \\text{trivial} \\rightarrow \\text{benefit}",
          note = "Multiples are then refused: \"2\u00d7\" could be anywhere from 0.6 to 1.0.")
   ),
-  code = "geom_mcid_zones(mcid_thresholds(lower = -0.25, upper = 0.3), beyond = \"multiples\")\ngeom_mcid_zones(mcid_thresholds(lower = -0.25, upper = c(0.3, 0.5)))"
+  code = snips$mcidzones
 )
 ```
 
@@ -582,7 +732,7 @@ stepper("tukey", "The trt2 \u2212 trt1 interval in PlantGrowth",
          sprintf("%s \\pm %s = [\\,%s,\\ %s\\,]", nt(dif), nt(half_w), nt(dif - half_w), nt(dif + half_w)),
          note = sprintf("Against the d zones of calculator 2 (boundaries at \u00b1%s, \u00b1%s, \u00b1%s kg), this interval runs from the small zone into the large zone.", n(raw[1]), n(raw[2]), n(raw[3])))
   ),
-  code = "plot_contrasts(fit, zones = geom_es_zones(es_benchmarks(\"cohen_d\")))"
+  code = snips$tukey
 )
 ```
 
@@ -628,7 +778,7 @@ stepper("panel", "Which Cohen's d zones appear in the PlantGrowth Tukey plot",
                 "Result: ", paste(sprintf("%s %s", ifelse(keep3, "✔", "✘"), lab), collapse = ", "),
                 ". The <em>large</em> zones begin beyond the visible range on both sides, so <em>large</em> is left out of the legend."))
   ),
-  code = "plot_contrasts(fit, zones = geom_es_zones(es_benchmarks(\"cohen_d\"))) # expand = FALSE\nplot_contrasts(fit, zones = geom_es_zones(es_benchmarks(\"cohen_d\"), expand = TRUE))"
+  code = snips$panel
 )
 ```
 
