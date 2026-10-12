@@ -30,9 +30,10 @@ pak::pak("drhrf/effectzones")
 
 Standardised thresholds (here Cohen’s d, used only as an illustration;
 see the vignette on choosing a set) are converted to the raw scale of
-the contrasts with the model’s pooled SD.
+the contrasts. For a one-way model
 [`plot_contrasts()`](https://drhrf.github.io/effectzones/reference/plot_contrasts.md)
-says which SD it used.
+uses the model’s pooled within-group SD and says so; for anything more
+complex it asks you to choose the SD.
 
 ``` r
 
@@ -41,15 +42,18 @@ library(ggplot2)
 
 fit <- aov(breaks ~ tension, data = warpbreaks)
 plot_contrasts(
-  TukeyHSD(fit),
-  zones = geom_es_zones(es_benchmarks("cohen_d"), labels = TRUE),
-  model = fit
+  fit,
+  zones = geom_es_zones(es_benchmarks("cohen_d"), labels = TRUE)
 )
-#> ℹ Converting d thresholds with the model's pooled (residual) SD = 11.9.
+#> ℹ Converting d thresholds with the residual (pooled within-group) SD of the
+#>   one-way model: 11.9.
 #>   Set `sd` in the zones layer to use a different SD.
 ```
 
-![](reference/figures/README-tukey-es-1.png)
+![Forest plot of the three Tukey contrasts between tension levels in
+warpbreaks, with confidence intervals drawn over grey background bands
+marking negligible, small, medium and large Cohen's d
+zones.](reference/figures/README-tukey-es-1.png)
 
 ## The same contrasts over MCID zones
 
@@ -65,16 +69,21 @@ mcid <- mcid_thresholds(
   direction = "lower_better",
   source = "Hypothetical anchors"
 )
-plot_contrasts(TukeyHSD(fit), zones = geom_mcid_zones(mcid, labels = TRUE))
+plot_contrasts(fit, zones = geom_mcid_zones(mcid, labels = TRUE))
 ```
 
-![](reference/figures/README-tukey-mcid-1.png)
+![The same Tukey contrasts drawn over orange harm, white trivial and
+blue benefit zones; the boundary between trivial and benefit fades
+across the uncertain MCID
+range.](reference/figures/README-tukey-mcid-1.png)
 
 ## An odds-ratio forest plot on a log axis
 
-Ratio zones are symmetric on the log scale around 1. The Chen, Cohen &
-Chen (2010) odds ratios correspond to d = 0.2 / 0.5 / 0.8 only at a 1%
-baseline risk.
+The Chen, Cohen & Chen (2010) odds ratios correspond to d = 0.2 / 0.5 /
+0.8 at a 1% baseline risk;
+[`chen_or_thresholds()`](https://drhrf.github.io/effectzones/reference/chen_or_thresholds.md)
+computes them for any baseline risk. Under their method the zones below
+1 are not mirror images of those above 1, and are drawn accordingly.
 
 ``` r
 
@@ -85,7 +94,7 @@ or <- data.frame(
   upper = c(1.08, 2.06, 4.36, 11.3)
 )
 ggplot(or, aes(estimate, term)) +
-  geom_es_zones(es_benchmarks("chen_or"), scale = "log", null = 1) +
+  geom_es_zones(chen_or_thresholds(0.05), scale = "log", null = 1) +
   geom_vline(xintercept = 1, linetype = 2) +
   geom_errorbar(aes(xmin = lower, xmax = upper), width = 0.2) +
   geom_point() +
@@ -94,11 +103,15 @@ ggplot(or, aes(estimate, term)) +
   theme_minimal()
 ```
 
-![](reference/figures/README-or-1.png)
+![Odds-ratio forest plot on a log axis with four exposures, over grey
+effect-size zones that are not symmetric around an odds ratio of
+1.](reference/figures/README-or-1.png)
 
 Add the zones layer **before** points and error bars so they are drawn
 on top. Zones do not change the axis limits unless you set
-`expand = TRUE`.
+`expand = TRUE`, and the legend lists only the zones that appear in the
+plot. Rename zones with `zone_labels`,
+e.g. `zone_labels = c(negligible = "below small")`.
 
 ## What effectzones deliberately does not do
 
@@ -108,6 +121,15 @@ magnitude-based inference, which has been shown to be statistically
 unsound (Welsh & Knight 2015; Sainani 2018). See
 [`vignette("effectzones")`](https://drhrf.github.io/effectzones/articles/effectzones.md)
 and [DESIGN.md](https://drhrf.github.io/effectzones/DESIGN.md).
+
+## Documentation
+
+The [package website](https://drhrf.github.io/effectzones/) has the
+reference, the guide *Reading estimates against zones*, and [*The
+mathematics behind
+effectzones*](https://drhrf.github.io/effectzones/articles/mathematics.html),
+which works through every calculation step by step with interactive
+examples.
 
 # Package index
 
@@ -126,6 +148,8 @@ and [DESIGN.md](https://drhrf.github.io/effectzones/DESIGN.md).
   : Effect-size thresholds
 - [`es_benchmarks()`](https://drhrf.github.io/effectzones/reference/es_benchmarks.md)
   : Published effect-size benchmark sets
+- [`chen_or_thresholds()`](https://drhrf.github.io/effectzones/reference/chen_or_thresholds.md)
+  : Odds-ratio thresholds equivalent to d at a given baseline risk
 
 ## MCID thresholds
 
@@ -150,7 +174,13 @@ and [DESIGN.md](https://drhrf.github.io/effectzones/DESIGN.md).
 
 # Articles
 
-### Articles
+### Guides
 
 - [Reading estimates against
   zones](https://drhrf.github.io/effectzones/articles/effectzones.md):
+
+- [The mathematics behind
+  effectzones](https://drhrf.github.io/effectzones/articles/mathematics.md):
+
+  Every calculation the package performs, worked through step by step
+  with interactive examples.

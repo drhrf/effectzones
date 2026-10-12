@@ -53,15 +53,22 @@ first cut ("negligible") is a convention of this package.
 
 `"chen_or"` is tied to a 1% event rate in the reference group: Chen et
 al. (2010) show that the odds ratio equivalent to a given d depends on
-the baseline risk, and is smaller when the baseline risk is higher.
+the baseline risk, and is smaller when the baseline risk is higher. Use
+[`chen_or_thresholds()`](https://drhrf.github.io/effectzones/reference/chen_or_thresholds.md)
+for other baseline risks. Under their method the zones are not symmetric
+on the log scale: the published values are the boundaries above 1, and
+the boundaries below 1 (1/1.74, 1/4.28, 1/11.40) are computed by
+applying the method to negative d.
 
 ## References
 
 Cohen J (1988). *Statistical Power Analysis for the Behavioral
 Sciences*, 2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+[doi:10.4324/9780203771587](https://doi.org/10.4324/9780203771587)
 
 Sawilowsky SS (2009). New effect size rules of thumb. *Journal of Modern
 Applied Statistical Methods* 8(2):597-599.
+[doi:10.22237/jmasm/1257035100](https://doi.org/10.22237/jmasm/1257035100)
 
 Funder DC, Ozer DJ (2019). Evaluating effect size in psychological
 research: sense and nonsense. *Advances in Methods and Practices in
@@ -77,6 +84,7 @@ Chen H, Cohen P, Chen S (2010). How big is a big odds ratio?
 Interpreting the magnitudes of odds ratios in epidemiological studies.
 *Communications in Statistics - Simulation and Computation*
 39(4):860-864.
+[doi:10.1080/03610911003650383](https://doi.org/10.1080/03610911003650383)
 
 ## See also
 
@@ -98,12 +106,12 @@ es_benchmarks()
 #> risk)
 es_benchmarks("cohen_d")
 #> <es_thresholds> on the "d" scale
-#> negligible: |effect| in [0, 0.2)
-#> small: |effect| in [0.2, 0.5)
-#> medium: |effect| in [0.5, 0.8)
-#> large: |effect| in [0.8, Inf)
+#> negligible: magnitude in [0, 0.2)
+#> small: magnitude in [0.2, 0.5)
+#> medium: magnitude in [0.5, 0.8)
+#> large: magnitude in [0.8, Inf)
 #> Source: Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,
-#> 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. Cohen offered these values as
-#> conventions for use only when no better basis for judging magnitude is
-#> available.
+#> 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587. Cohen
+#> offered these values as conventions for use only when no better basis for
+#> judging magnitude is available.
 ```

@@ -76,14 +76,17 @@ it only relabels effect-size zones in clinical language.
 Norman GR, Sloan JA, Wyrwich KW (2003). Interpretation of changes in
 health-related quality of life: the remarkable universality of half a
 standard deviation. *Medical Care* 41(5):582-592.
+[doi:10.1097/01.mlr.0000062554.74615.4c](https://doi.org/10.1097/01.mlr.0000062554.74615.4c)
 
 Wyrwich KW, Tierney WM, Wolinsky FD (1999). Further evidence supporting
 an SEM-based criterion for identifying meaningful intra-individual
 changes in health-related quality of life. *Journal of Clinical
 Epidemiology* 52(9):861-873.
+[doi:10.1016/s0895-4356(99)00071-2](https://doi.org/10.1016/s0895-4356%2899%2900071-2)
 
 McGlothlin AE, Lewis RJ (2014). Minimal clinically important difference:
 defining what really matters to patients. *JAMA* 312(13):1342-1343.
+[doi:10.1001/jama.2014.13128](https://doi.org/10.1001/jama.2014.13128)
 
 ## Examples
 
@@ -95,9 +98,10 @@ mcid_distribution(sd = 10)
 #> benefit: difference > 5
 #> Provisional: not derived from patients' judgements.
 #> Source: Half SD = 0.5 x 10 = 5. Norman GR, Sloan JA, Wyrwich KW (2003). Med
-#> Care 41(5):582-592. Equal to Cohen's 'medium' d = 0.5. Distribution-based
-#> values are not patient-derived (McGlothlin AE, Lewis RJ (2014). JAMA
-#> 312(13):1342-1343) and are provisional until an anchor-based MCID is available.
+#> Care 41(5):582-592. doi:10.1097/01.mlr.0000062554.74615.4c. Equal to Cohen's
+#> 'medium' d = 0.5. Distribution-based values are not patient-derived (McGlothlin
+#> AE, Lewis RJ (2014). JAMA 312(13):1342-1343, doi:10.1001/jama.2014.13128) and
+#> are provisional until an anchor-based MCID is available.
 mcid_distribution(sd = 10, method = "sem", reliability = 0.84)
 #> <mcid_thresholds> (higher_better)
 #> harm: difference < -4
@@ -106,7 +110,8 @@ mcid_distribution(sd = 10, method = "sem", reliability = 0.84)
 #> Provisional: not derived from patients' judgements.
 #> Source: One SEM = SD x sqrt(1 - reliability) = 10 x sqrt(1 - 0.84) = 4.
 #> SEM-based criterion: Wyrwich KW, Tierney WM, Wolinsky FD (1999). J Clin
-#> Epidemiol 52(9):861-873. Distribution-based values are not patient-derived
-#> (McGlothlin AE, Lewis RJ (2014). JAMA 312(13):1342-1343) and are provisional
-#> until an anchor-based MCID is available.
+#> Epidemiol 52(9):861-873. doi:10.1016/s0895-4356(99)00071-2. Distribution-based
+#> values are not patient-derived (McGlothlin AE, Lewis RJ (2014). JAMA
+#> 312(13):1342-1343, doi:10.1001/jama.2014.13128) and are provisional until an
+#> anchor-based MCID is available.
 ```

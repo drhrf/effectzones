@@ -1,9 +1,10 @@
 # Effect-size magnitude zones
 
 Draws background bands for effect-size magnitude zones ("negligible",
-"small", "medium", ...), symmetric around the null, behind estimates and
-confidence intervals. The layer draws a reference background only: it
-does not look at, classify or test any estimate.
+"small", "medium", ...) around the null (symmetric unless the thresholds
+set `cuts_lower`), behind estimates and confidence intervals. The layer
+draws a reference background only: it does not look at, classify or test
+any estimate.
 
 ## Usage
 
@@ -22,6 +23,7 @@ geom_es_zones(
   label_size = 3,
   label_colour = "grey20",
   n_slices = 40,
+  zone_labels = NULL,
   title = NULL,
   show.legend = NA,
   ...
@@ -90,6 +92,14 @@ geom_es_zones(
 
   Number of thin rectangles used to draw each soft transition.
 
+- zone_labels:
+
+  Optional new names for the zones, for example `"below small"` instead
+  of `"negligible"`. Either a character vector (or list) with one name
+  per zone, from the null outwards
+  (`c("below small", "small", "medium", "large")`), or a named vector
+  that renames only some zones (`c(negligible = "below small")`).
+
 - title:
 
   Legend title. Defaults to the short source of the thresholds.
@@ -156,10 +166,12 @@ conventions, not natural discontinuities.
 
 Cohen J (1988). *Statistical Power Analysis for the Behavioral
 Sciences*, 2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+[doi:10.4324/9780203771587](https://doi.org/10.4324/9780203771587)
 
 Chinn S (2000). A simple method for converting an odds ratio to effect
 size for use in meta-analysis. *Statistics in Medicine*
 19(22):3127-3131.
+[doi:10.1002/1097-0258(20001130)19:22\<3127::AID-SIM784\>3.0.CO;2-M](https://doi.org/10.1002/1097-0258%2820001130%2919%3A22%3C3127%3A%3AAID-SIM784%3E3.0.CO%3B2-M)
 
 ## See also
 

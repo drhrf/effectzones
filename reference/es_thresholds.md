@@ -2,9 +2,10 @@
 
 Define the cut-points that separate effect-size magnitude zones
 ("negligible", "small", "medium", ...). The cut-points are positive
-magnitudes and are applied symmetrically around the null: a cut at `0.5`
-produces boundaries at `-0.5` and `+0.5` for additive metrics, and at
-`1/c` and `c` for ratio metrics (`"or"`, `"rr"`).
+magnitudes and, by default, are applied symmetrically around the null: a
+cut at `0.5` produces boundaries at `-0.5` and `+0.5` for additive
+metrics, and at `1/c` and `c` for ratio metrics (`"or"`, `"rr"`). Use
+`cuts_lower` when the two sides differ.
 
 ## Usage
 
@@ -13,7 +14,8 @@ es_thresholds(
   cuts,
   labels,
   metric = c("d", "r", "eta2", "f", "or", "rr", "raw"),
-  source = NULL
+  source = NULL,
+  cuts_lower = NULL
 )
 ```
 
@@ -43,10 +45,18 @@ es_thresholds(
   in the legend title, so keep it short or use the `title` argument of
   [`geom_es_zones()`](https://drhrf.github.io/effectzones/reference/geom_es_zones.md).
 
+- cuts_lower:
+
+  Optional magnitudes for the side below the null when it differs from
+  the side above (same length as `cuts`, same labels). A value `c` is
+  drawn at `null - c`, or at `null / c` for ratio metrics. Defaults to
+  `cuts` (symmetric zones).
+
 ## Value
 
 An object of class `es_thresholds`: a list with elements `cuts`,
-`labels`, `metric`, `source` and `title` (the short legend title).
+`cuts_lower`, `labels`, `metric`, `source` and `title` (the short legend
+title).
 
 ## Details
 
@@ -68,8 +78,8 @@ For published benchmark sets use
 es_thresholds(c(0.1, 0.3), c("trivial", "modest", "substantial"),
               metric = "d", source = "Pre-registered, protocol v2")
 #> <es_thresholds> on the "d" scale
-#> trivial: |effect| in [0, 0.1)
-#> modest: |effect| in [0.1, 0.3)
-#> substantial: |effect| in [0.3, Inf)
+#> trivial: magnitude in [0, 0.1)
+#> modest: magnitude in [0.1, 0.3)
+#> substantial: magnitude in [0.3, Inf)
 #> Source: Pre-registered, protocol v2
 ```

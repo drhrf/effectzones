@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Reading estimates against zones • effectzones</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -16,7 +17,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">effectzones</a>
 
@@ -31,6 +32,12 @@
       <ul class="navbar-nav me-auto">
 <li class="active nav-item"><a class="nav-link" href="../articles/effectzones.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/mathematics.html">The mathematics behind effectzones</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -50,8 +57,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Reading estimates against zones</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Reading estimates against zones</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/drhrf/effectzones/blob/main/vignettes/effectzones.Rmd" class="external-link"><code>vignettes/effectzones.Rmd</code></a></small>
@@ -89,18 +95,18 @@ zones:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aov.html" class="external-link">aov</a></span><span class="op">(</span><span class="va">weight</span> <span class="op">~</span> <span class="va">group</span>, data <span class="op">=</span> <span class="va">PlantGrowth</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/TukeyHSD.html" class="external-link">TukeyHSD</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>,</span>
-<span>  zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>, labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>  model <span class="op">=</span> <span class="va">fit</span></span>
+<span>  <span class="va">fit</span>,</span>
+<span>  zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>, labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Converting d thresholds with the model's pooled (residual) SD = 0.623.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Converting d thresholds with the residual (pooled within-group) SD of the</span></span>
+<span><span class="co">#&gt;   one-way model: 0.623.</span></span>
 <span><span class="co">#&gt;   Set `sd` in the zones layer to use a different SD.</span></span></code></pre></div>
 <p><img src="effectzones_files/figure-html/tukey-es-1.png" class="r-plt" alt="" width="100%"></p>
 <p>Two layers do the work, and you can use them in any ggplot:</p>
 <ul>
 <li>
-<code><a href="../reference/geom_es_zones.html">geom_es_zones()</a></code>: effect-size magnitude zones, symmetric
-around the null.</li>
+<code><a href="../reference/geom_es_zones.html">geom_es_zones()</a></code>: effect-size magnitude zones around the
+null.</li>
 <li>
 <code><a href="../reference/geom_mcid_zones.html">geom_mcid_zones()</a></code>: harm / trivial / benefit zones from
 a minimal clinically important difference (MCID).</li>
@@ -108,8 +114,9 @@ a minimal clinically important difference (MCID).</li>
 <p>Add the zones layer <strong>first</strong>, so that points, error
 bars and reference lines are drawn on top of it. By default the zones do
 not change the axis limits: they fill whatever range your data define,
-and the outermost zones extend to the panel edges. Use
-<code>expand = TRUE</code> if every cut-point should be visible.</p>
+and the outermost zones extend to the panel edges. The legend lists only
+the zones that appear in the plot. Use <code>expand = TRUE</code> if
+every cut-point should be visible.</p>
 </div>
 <div class="section level2">
 <h2 id="choosing-a-benchmark-set-and-why-there-is-no-default">Choosing a benchmark set, and why there is no default<a class="anchor" aria-label="anchor" href="#choosing-a-benchmark-set-and-why-there-is-no-default"></a>
@@ -156,12 +163,24 @@ plot should record it: the legend title names the source.</p>
 <span><span class="op">)</span></span>
 <span><span class="va">my_cuts</span></span>
 <span><span class="co">#&gt; <span style="color: #0000BB;">&lt;es_thresholds&gt;</span> on the <span style="color: #0000BB;">"d"</span> scale</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">trivial</span>: |effect| in [0, 0.1)</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">modest</span>: |effect| in [0.1, 0.3)</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">substantial</span>: |effect| in [0.3, Inf)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">trivial</span>: magnitude in [0, 0.1)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">modest</span>: magnitude in [0.1, 0.3)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">substantial</span>: magnitude in [0.3, Inf)</span></span>
 <span><span class="co">#&gt; Source: Protocol v2, section 9</span></span></code></pre></div>
 <p>The cited sources define cut-points. The label of the innermost zone
-(“negligible”) is a convention of this package, not of the sources.</p>
+(“negligible”) is a convention of this package, not of the sources.
+Rename any zone with <code>zone_labels</code>, either all at once or by
+name:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span></span>
+<span>  <span class="va">fit</span>,</span>
+<span>  zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>,</span>
+<span>                        zone_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>negligible <span class="op">=</span> <span class="st">"below small"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Converting d thresholds with the residual (pooled within-group) SD of the</span></span>
+<span><span class="co">#&gt;   one-way model: 0.623.</span></span>
+<span><span class="co">#&gt;   Set `sd` in the zones layer to use a different SD.</span></span></code></pre></div>
+<p><img src="effectzones_files/figure-html/rename-1.png" class="r-plt" alt="" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="converting-thresholds-to-the-plot-scale-and-which-sd-to-use">Converting thresholds to the plot scale, and which SD to use<a class="anchor" aria-label="anchor" href="#converting-thresholds-to-the-plot-scale-and-which-sd-to-use"></a>
@@ -170,41 +189,170 @@ plot should record it: the legend title names the source.</p>
 Contrasts from an ANOVA are differences in the outcome’s own units, so
 standardised thresholds have to be converted: a cut d is drawn at d ×
 SD.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/to_plot_scale.html">to_plot_scale</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #0000BB;">&lt;es_thresholds&gt;</span> on the <span style="color: #0000BB;">"raw"</span> scale</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">negligible</span>: |effect| in [0, 0.4)</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">small</span>: |effect| in [0.4, 1)</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">medium</span>: |effect| in [1, 1.6)</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">large</span>: |effect| in [1.6, Inf)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">negligible</span>: magnitude in [0, 0.4)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">small</span>: magnitude in [0.4, 1)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">medium</span>: magnitude in [1, 1.6)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">large</span>: magnitude in [1.6, Inf)</span></span>
 <span><span class="co">#&gt; Source: Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,</span></span>
-<span><span class="co">#&gt; 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. Cohen offered these values as</span></span>
-<span><span class="co">#&gt; conventions for use only when no better basis for judging magnitude is</span></span>
-<span><span class="co">#&gt; available.</span></span>
+<span><span class="co">#&gt; 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587. Cohen</span></span>
+<span><span class="co">#&gt; offered these values as conventions for use only when no better basis for</span></span>
+<span><span class="co">#&gt; judging magnitude is available.</span></span>
 <span><span class="co">#&gt; Note: d cut-points multiplied by SD = 2.</span></span></code></pre></div>
-<p>Which SD to use is not a technicality.</p>
-<ul>
-<li>The <strong>residual (pooled within-group) SD</strong> of the model,
-<code>pooled_sd(fit)</code>, is the usual choice for between-group
-contrasts and is what <code><a href="../reference/plot_contrasts.html">plot_contrasts()</a></code> uses when you pass
-<code>model</code> (it prints a message saying so).</li>
-<li>A <strong>baseline or reference-population SD</strong> may be more
-appropriate when the benchmark was defined relative to it, or when the
-treatment changes the variance.</li>
-<li>In models with several variance components (repeated measures,
-random effects) there is no single SD; supply the one your benchmark
-refers to.</li>
-</ul>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/TukeyHSD.html" class="external-link">TukeyHSD</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>,</span>
-<span>  zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="effectzones_files/figure-html/sd-explicit-1.png" class="r-plt" alt="" width="100%"></p>
-<p>For <strong>ratios</strong> (odds ratios, risk ratios), zones are
-symmetric on the log scale around 1: a cut c is drawn at c and 1/c. Use
-<code>scale = "log"</code>, <code>null = 1</code>, and a log axis:</p>
+<p>Which SD to use is not a technicality: the same benchmark drawn with
+a different SD lands in a different place, and changes how the intervals
+read.</p>
+<p><strong>One-way models.</strong> In <code>aov(y ~ group)</code> the
+residual SD (the square root of the ANOVA’s mean squared error) is the
+pooled within-group SD. That is the usual denominator of Cohen’s d, and
+it is the same quantity the ANOVA F test and the Tukey intervals already
+rely on, under the same equal-variance assumption.
+<code><a href="../reference/plot_contrasts.html">plot_contrasts()</a></code> therefore takes it from the model
+automatically and prints its value. It works from the <code>aov</code>
+fit, from an <code>emmeans()</code> grid of means, and from a
+<code>TukeyHSD</code> object: <code><a href="https://rdrr.io/r/stats/TukeyHSD.html" class="external-link">TukeyHSD()</a></code> keeps the call
+that fitted the model but not the model itself, so the call is re-run
+and the result is used only if it reproduces the Tukey contrasts
+exactly.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/TukeyHSD.html" class="external-link">TukeyHSD</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span><span class="va">tk</span>, zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Refitted `aov(formula = weight ~ group, data = PlantGrowth)` to get the</span></span>
+<span><span class="co">#&gt;   model's SD; it reproduces these Tukey contrasts exactly.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Converting d thresholds with the residual (pooled within-group) SD of the</span></span>
+<span><span class="co">#&gt;   one-way model: 0.623.</span></span>
+<span><span class="co">#&gt;   Set `sd` in the zones layer to use a different SD.</span></span></code></pre></div>
+<p><img src="effectzones_files/figure-html/tukey-object-1.png" class="r-plt" alt="" width="100%"></p>
+<p><strong>Everything else.</strong> With several factors, covariates or
+interactions, the residual SD has the variance of every other term
+removed. Whether that is right depends on what those terms are, and the
+model object cannot tell:</p>
+<ul>
+<li>
+<strong>Manipulated (randomised) factors</strong> — a second
+treatment, a dose, a task condition — create variation that does not
+exist in the population. Removing it from the SD is correct.</li>
+<li>
+<strong>Measured factors and covariates</strong> — sex, age, site,
+baseline score — are ordinary differences between people. Removing them
+shrinks the SD, inflates d and narrows the zones.</li>
+</ul>
+<p>So <code><a href="../reference/plot_contrasts.html">plot_contrasts()</a></code> does not choose. It stops and
+explains the rigorous procedure, in order of preference:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Decide what the benchmark’s SD refers to</strong>, and fix
+it before seeing the results. Usually that is the SD of the outcome in
+the target population, at baseline.</li>
+<li>
+<strong>Best option: an external, pre-specified SD</strong>, for
+example the baseline SD from the protocol or from a large prior study.
+It doesn’t depend on the model, isn’t inflated by covariate adjustment,
+and can’t be tuned after looking at the contrasts. This is what
+<code>sd =</code> allows.</li>
+<li>
+<strong>If the SD must come from the data</strong>: refit the model
+with only the manipulated factors (the factor of interest, other
+randomised factors, and their interactions), and use that model’s
+residual SD. Measured factors and covariates go back into the error
+term. That gives the SD of people within treatment cells, the
+generalized standardizer behind Olejnik &amp; Algina (2003). For a
+randomised ANCOVA this amounts to using the unadjusted within-group SD
+instead of the covariate-adjusted one.</li>
+<li>
+<strong>State the remaining sampling uncertainty.</strong> The SD is
+still an estimate with finite degrees of freedom, so it has its own
+confidence interval, and that uncertainty carries into where each
+boundary sits (d × SD). effectzones does not draw it yet; report the SD,
+its source and its confidence interval with the plot.</li>
+</ol>
+<p>This can’t be fully automatic: whether a factor is manipulated or
+measured depends on the study design, and the model doesn’t record
+it.</p>
+<p>An example where it matters. In the <code>CO2</code> data, plants
+were chilled or not (manipulated) and came from Quebec or Mississippi
+(measured: an origin, not a treatment). At the highest CO₂
+concentration:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">co2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">CO2</span>, <span class="va">conc</span> <span class="op">==</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">fit_co2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aov.html" class="external-link">aov</a></span><span class="op">(</span><span class="va">uptake</span> <span class="op">~</span> <span class="va">Treatment</span> <span class="op">+</span> <span class="va">Type</span>, data <span class="op">=</span> <span class="va">co2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span><span class="va">fit_co2</span>, which <span class="op">=</span> <span class="st">"Treatment"</span>,</span>
+<span>               zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;"> in `plot_contrasts()`:</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Not choosing an SD for you: the model has 2 terms (Treatment, Type),</span></span>
+<span><span class="co">#&gt;   not one.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The model's residual SD has the variance of every other term removed. That is</span></span>
+<span><span class="co">#&gt;   right for factors you manipulated (randomised), but too small for factors you</span></span>
+<span><span class="co">#&gt;   only measured (sex, age, site, baseline covariates): it inflates d and</span></span>
+<span><span class="co">#&gt;   narrows the zones.</span></span>
+<span><span class="co">#&gt;   </span></span>
+<span><span class="co">#&gt;   <span style="font-weight: bold;">The rigorous procedure, in order of preference:</span></span></span>
+<span><span class="co">#&gt;   <span style="font-weight: bold;">1. Decide what the benchmark's SD refers to</span>, and fix it before seeing the</span></span>
+<span><span class="co">#&gt;   results. Usually that is the SD of the outcome in the target population, at</span></span>
+<span><span class="co">#&gt;   baseline.</span></span>
+<span><span class="co">#&gt;   <span style="font-weight: bold;">2. Best option: an external, pre-specified SD</span>, for example the baseline SD</span></span>
+<span><span class="co">#&gt;   from the protocol or from a large prior study. It doesn't depend on the</span></span>
+<span><span class="co">#&gt;   model, isn't inflated by covariate adjustment, and can't be tuned after</span></span>
+<span><span class="co">#&gt;   looking at the contrasts. Give it as `geom_es_zones(..., sd = &lt;value&gt;)`.</span></span>
+<span><span class="co">#&gt;   <span style="font-weight: bold;">3. If the SD must come from the data</span>: refit the model with only the</span></span>
+<span><span class="co">#&gt;   manipulated factors (the factor of interest, other randomised factors, and</span></span>
+<span><span class="co">#&gt;   their interactions), and use that model's residual SD. Measured factors and</span></span>
+<span><span class="co">#&gt;   covariates go back into the error term. That gives the SD of people within</span></span>
+<span><span class="co">#&gt;   treatment cells, the generalized standardizer behind Olejnik &amp; Algina (2003).</span></span>
+<span><span class="co">#&gt;   For a randomised ANCOVA this amounts to the unadjusted within-group SD</span></span>
+<span><span class="co">#&gt;   instead of the covariate-adjusted one. For example, if only <span style="color: #00BB00;">Treatment</span> was</span></span>
+<span><span class="co">#&gt;   randomised: `sd = pooled_sd(update(model, . ~ Treatment))`, where `model` is</span></span>
+<span><span class="co">#&gt;   your fitted model. If every term in the model was manipulated (a fully</span></span>
+<span><span class="co">#&gt;   randomised factorial), the model's own residual SD is the answer: `sd =</span></span>
+<span><span class="co">#&gt;   pooled_sd(model)`.</span></span>
+<span><span class="co">#&gt;   <span style="font-weight: bold;">4. State the remaining sampling uncertainty.</span> The SD is still an estimate with</span></span>
+<span><span class="co">#&gt;   finite degrees of freedom, so it has its own confidence interval, and that</span></span>
+<span><span class="co">#&gt;   uncertainty carries into where each boundary sits (d × SD). effectzones does</span></span>
+<span><span class="co">#&gt;   not draw it yet: report the SD, where it came from, and its confidence</span></span>
+<span><span class="co">#&gt;   interval with the plot.</span></span>
+<span><span class="co">#&gt;   </span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> This can't be fully automatic. Whether a factor is manipulated or measured</span></span>
+<span><span class="co">#&gt;   depends on the study design, and the model object doesn't record it. So</span></span>
+<span><span class="co">#&gt;   effectzones can't infer it; you have to say.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Worked examples: `vignette("effectzones")`, section "Converting thresholds to</span></span>
+<span><span class="co">#&gt;   the plot scale, and which SD to use".</span></span></code></pre></div>
+<p>The residual SD of the full model removes the large difference
+between origins; refitting with the manipulated factor only puts it
+back:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/pooled_sd.html">pooled_sd</a></span><span class="op">(</span><span class="va">fit_co2</span><span class="op">)</span>                             <span class="co"># origin removed: too small</span></span>
+<span><span class="co">#&gt; [1] 4.334786</span></span>
+<span><span class="fu"><a href="../reference/pooled_sd.html">pooled_sd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit_co2</span>, <span class="va">.</span> <span class="op">~</span> <span class="va">Treatment</span><span class="op">)</span><span class="op">)</span>      <span class="co"># step 3: the standardizer</span></span>
+<span><span class="co">#&gt; [1] 10.09553</span></span></code></pre></div>
+<p>Using the first would make every zone 2.3 times narrower than the
+benchmark intends. With step 3:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span><span class="va">fit_co2</span>, which <span class="op">=</span> <span class="st">"Treatment"</span>,</span>
+<span>               zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>,</span>
+<span>                                     sd <span class="op">=</span> <span class="fu"><a href="../reference/pooled_sd.html">pooled_sd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit_co2</span>, <span class="va">.</span> <span class="op">~</span> <span class="va">Treatment</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                                     labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="effectzones_files/figure-html/co2-plot-1.png" class="r-plt" alt="" width="100%"></p>
+<p>When every term was manipulated, as in <code>warpbreaks</code> (wool
+type and tension were both set by the experimenter), step 3 keeps them
+all and the model’s own residual SD is the standardizer:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aov.html" class="external-link">aov</a></span><span class="op">(</span><span class="va">breaks</span> <span class="op">~</span> <span class="va">wool</span> <span class="op">+</span> <span class="va">tension</span>, data <span class="op">=</span> <span class="va">warpbreaks</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span><span class="va">fit2</span>, which <span class="op">=</span> <span class="st">"tension"</span>,</span>
+<span>               zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>,</span>
+<span>                                     sd <span class="op">=</span> <span class="fu"><a href="../reference/pooled_sd.html">pooled_sd</a></span><span class="op">(</span><span class="va">fit2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="effectzones_files/figure-html/two-way-1.png" class="r-plt" alt="" width="100%"></p>
+<p>In models with several variance components (repeated measures, random
+effects) there is no single residual SD; supply the one your benchmark
+refers to. The calculations behind each step are worked through in the
+article <em>The mathematics behind effectzones</em> on the package
+website.</p>
+<p>For <strong>ratios</strong> (odds ratios, risk ratios), a cut c is
+drawn at c and 1/c, symmetric on the log scale, unless the thresholds
+say otherwise (below). Use <code>scale = "log"</code>,
+<code>null = 1</code>, and a log axis:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">or</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  term <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Exposure A"</span>, <span class="st">"Exposure B"</span>, <span class="st">"Exposure C"</span>, <span class="st">"Exposure D"</span><span class="op">)</span>,</span>
 <span>  estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.72</span>, <span class="fl">1.45</span>, <span class="fl">2.60</span>, <span class="fl">5.10</span><span class="op">)</span>,</span>
@@ -223,14 +371,42 @@ symmetric on the log scale around 1: a cut c is drawn at c and 1/c. Use
 <p><img src="effectzones_files/figure-html/or-1.png" class="r-plt" alt="" width="100%"></p>
 <p>Chen, Cohen &amp; Chen (2010) derived these odds ratios as the
 equivalents of d = 0.2, 0.5 and 0.8 <strong>when the event rate in the
-reference group is 1%</strong>. At higher baseline risks the equivalent
-odds ratios are smaller, so the <code>"chen_or"</code> zones are only
-appropriate near that baseline.</p>
+reference group is 1%</strong>. Their method places both groups on a
+latent normal scale: with reference risk p0, a shift d gives an exposed
+risk p1 = Φ(Φ⁻¹(p0) + d), and the odds ratio follows from p0 and p1.
+<code><a href="../reference/chen_or_thresholds.html">chen_or_thresholds()</a></code> implements it for any baseline risk;
+it reproduces the published 1% values (1.68, 3.47, 6.71) and 5% values
+(1.52, 2.74, 4.72):</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/chen_or_thresholds.html">chen_or_thresholds</a></span><span class="op">(</span><span class="fl">0.10</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;es_thresholds&gt;</span> on the <span style="color: #0000BB;">"or"</span> scale</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">negligible</span> (above null): magnitude in [1, 1.46)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">small</span> (above null): magnitude in [1.46, 2.5)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">medium</span> (above null): magnitude in [2.5, 4.14)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">large</span> (above null): magnitude in [4.14, Inf)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">negligible</span> (below null): magnitude in [1, 1.49)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">small</span> (below null): magnitude in [1.49, 2.86)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">medium</span> (below null): magnitude in [2.86, 5.83)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">large</span> (below null): magnitude in [5.83, Inf)</span></span>
+<span><span class="co">#&gt; Source: Odds ratios equivalent to d = 0.2/0.5/0.8 at a 10% baseline risk, by</span></span>
+<span><span class="co">#&gt; the method of Chen H, Cohen P, Chen S (2010). Commun Stat Simul Comput</span></span>
+<span><span class="co">#&gt; 39(4):860-864, doi:10.1080/03610911003650383. Boundaries below 1 apply the</span></span>
+<span><span class="co">#&gt; method to negative d.</span></span></code></pre></div>
+<p>The same model shows that the zones are <strong>not
+symmetric</strong>. A protective shift of −d does not give 1/OR: at a 1%
+baseline, d = −0.8 corresponds to OR = 1/11.4, not 1/6.71. The two sides
+agree only at a 50% baseline. So both
+<code>es_benchmarks("chen_or")</code> and
+<code><a href="../reference/chen_or_thresholds.html">chen_or_thresholds()</a></code> draw the boundaries below 1 from
+negative d. Chen et al. published only the values above 1; the ones
+below 1 apply their method and are labelled as such. Make sure the
+baseline risk is the risk in the reference group of <em>your</em> odds
+ratios (the denominator group).</p>
 <p>Alternatively, standardised thresholds can be converted to odds
 ratios with the approximation log(OR) = d × π / √3 (Chinn 2000), which
 assumes a logistic latent variable. Note that it gives different
 cut-points from Chen et al.:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/to_plot_scale.html">to_plot_scale</a></span><span class="op">(</span><span class="fu"><a href="../reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>, scale <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">$</span><span class="va">cuts</span></span>
 <span><span class="co">#&gt; [1] 1.437291 2.476632 4.267548</span></span></code></pre></div>
 <p>Correlations, η² and Cohen’s f are drawn on their own scale only;
@@ -251,7 +427,7 @@ the score, not what patients value. McGlothlin &amp; Lewis (2014) point
 out that such values are not patient-derived. effectzones never computes
 an MCID for you; if you want a distribution-based value you have to ask
 for one, and the legend marks it provisional:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mcid_distribution.html">mcid_distribution</a></span><span class="op">(</span>sd <span class="op">=</span> <span class="fl">0.7</span>, method <span class="op">=</span> <span class="st">"half_sd"</span><span class="op">)</span></span>
 <span><span class="va">prov</span></span>
 <span><span class="co">#&gt; <span style="color: #0000BB;">&lt;mcid_thresholds&gt;</span> (higher_better)</span></span>
@@ -260,9 +436,10 @@ for one, and the legend marks it provisional:</p>
 <span><span class="co">#&gt; <span style="font-weight: bold;">benefit</span>: difference &gt; 0.35</span></span>
 <span><span class="co">#&gt; <span style="font-style: italic;">Provisional: not derived from patients' judgements.</span></span></span>
 <span><span class="co">#&gt; Source: Half SD = 0.5 x 0.7 = 0.35. Norman GR, Sloan JA, Wyrwich KW (2003). Med</span></span>
-<span><span class="co">#&gt; Care 41(5):582-592. Equal to Cohen's 'medium' d = 0.5. Distribution-based</span></span>
-<span><span class="co">#&gt; values are not patient-derived (McGlothlin AE, Lewis RJ (2014). JAMA</span></span>
-<span><span class="co">#&gt; 312(13):1342-1343) and are provisional until an anchor-based MCID is available.</span></span>
+<span><span class="co">#&gt; Care 41(5):582-592. doi:10.1097/01.mlr.0000062554.74615.4c. Equal to Cohen's</span></span>
+<span><span class="co">#&gt; 'medium' d = 0.5. Distribution-based values are not patient-derived (McGlothlin</span></span>
+<span><span class="co">#&gt; AE, Lewis RJ (2014). JAMA 312(13):1342-1343, doi:10.1001/jama.2014.13128) and</span></span>
+<span><span class="co">#&gt; are provisional until an anchor-based MCID is available.</span></span>
 <span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/TukeyHSD.html" class="external-link">TukeyHSD</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_mcid_zones.html">geom_mcid_zones</a></span><span class="op">(</span><span class="va">prov</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="effectzones_files/figure-html/provisional-1.png" class="r-plt" alt="" width="100%"></p>
 <p>Norman, Sloan &amp; Wyrwich (2003) observed that many anchor-based
@@ -297,7 +474,7 @@ consider reporting responder proportions alongside.</p>
 the literature often gives more than one estimate of an MCID. Both are
 supported: <code>lower</code> and <code>upper</code> are set separately,
 and either can be a range.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">thr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mcid_thresholds.html">mcid_thresholds</a></span><span class="op">(</span></span>
 <span>  lower <span class="op">=</span> <span class="op">-</span><span class="fl">0.25</span>,             <span class="co"># deterioration threshold</span></span>
 <span>  upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span>,       <span class="co"># improvement: two anchor studies disagree</span></span>
@@ -318,17 +495,22 @@ have hard edges unless you set <code>softness</code>.</p>
 <p>With <code>beyond = "multiples"</code> the colour keeps deepening at
 2× and 3× the MCID, so an estimate just past the threshold and one far
 beyond it do not share a background:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/TukeyHSD.html" class="external-link">TukeyHSD</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>,</span>
-<span>               zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_mcid_zones.html">geom_mcid_zones</a></span><span class="op">(</span><span class="va">thr</span>, beyond <span class="op">=</span> <span class="st">"multiples"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>               zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_mcid_zones.html">geom_mcid_zones</a></span><span class="op">(</span><span class="fu"><a href="../reference/mcid_thresholds.html">mcid_thresholds</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="op">-</span><span class="fl">0.25</span>, upper <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>,</span>
+<span>                                       beyond <span class="op">=</span> <span class="st">"multiples"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="effectzones_files/figure-html/multiples-1.png" class="r-plt" alt="" width="100%"></p>
+<p>Multiples need point thresholds. If the MCID itself is uncertain, so
+are its multiples (an MCID of 4 to 6 puts “2×” anywhere from 8 to 12),
+and sharp lines at 2× and 3× would claim a precision the MCID does not
+have, so <code>beyond = "multiples"</code> with a range is an error.</p>
 <p>If lower values of the outcome are better (pain, symptom scores), set
 <code>direction = "lower_better"</code> and the benefit and harm sides
 swap.</p>
 <p>For black-and-white output use <code>palette = "grey"</code>. Grey
 levels have no natural direction, so add <code>labels = TRUE</code> or
 keep the legend:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/TukeyHSD.html" class="external-link">TukeyHSD</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>,</span>
 <span>               zones <span class="op">=</span> <span class="fu"><a href="../reference/geom_mcid_zones.html">geom_mcid_zones</a></span><span class="op">(</span><span class="va">thr</span>, palette <span class="op">=</span> <span class="st">"grey"</span>, labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="effectzones_files/figure-html/grey-1.png" class="r-plt" alt="" width="100%"></p>
@@ -358,16 +540,16 @@ thresholds and their source stated.</p>
 </h2>
 <p>Batterham AM, Hopkins WG (2006). Making meaningful inferences about
 magnitudes. <em>International Journal of Sports Physiology and
-Performance</em> 1(1):50-57.</p>
+Performance</em> 1(1):50-57. <a href="doi:10.1123/ijspp.1.1.50" class="uri">doi:10.1123/ijspp.1.1.50</a></p>
 <p>Chen H, Cohen P, Chen S (2010). How big is a big odds ratio?
 Interpreting the magnitudes of odds ratios in epidemiological studies.
 <em>Communications in Statistics - Simulation and Computation</em>
-39(4):860-864.</p>
+39(4):860-864. <a href="doi:10.1080/03610911003650383" class="uri">doi:10.1080/03610911003650383</a></p>
 <p>Chinn S (2000). A simple method for converting an odds ratio to
 effect size for use in meta-analysis. <em>Statistics in Medicine</em>
-19(22):3127-3131.</p>
+19(22):3127-3131. <a href="https://doi.org/10.1002/1097-0258(20001130)19:22%3C3127::AID-SIM784%3E3.0.CO;2-M" class="external-link">doi:10.1002/1097-0258(20001130)19:22&lt;3127::AID-SIM784&gt;3.0.CO;2-M</a></p>
 <p>Cohen J (1988). <em>Statistical Power Analysis for the Behavioral
-Sciences</em>, 2nd ed. Hillsdale, NJ: Lawrence Erlbaum.</p>
+Sciences</em>, 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. <a href="doi:10.4324/9780203771587" class="uri">doi:10.4324/9780203771587</a></p>
 <p>Funder DC, Ozer DJ (2019). Evaluating effect size in psychological
 research: sense and nonsense. <em>Advances in Methods and Practices in
 Psychological Science</em> 2(2):156-168. <a href="doi:10.1177/2515245919847202" class="uri">doi:10.1177/2515245919847202</a></p>
@@ -379,22 +561,25 @@ ascertaining the minimal clinically important difference. <em>Controlled
 Clinical Trials</em> 10(4):407-415. <a href="doi:10.1016/0197-2456(89)90005-6" class="uri">doi:10.1016/0197-2456(89)90005-6</a></p>
 <p>McGlothlin AE, Lewis RJ (2014). Minimal clinically important
 difference: defining what really matters to patients. <em>JAMA</em>
-312(13):1342-1343.</p>
+312(13):1342-1343. <a href="doi:10.1001/jama.2014.13128" class="uri">doi:10.1001/jama.2014.13128</a></p>
 <p>Norman GR, Sloan JA, Wyrwich KW (2003). Interpretation of changes in
 health-related quality of life: the remarkable universality of half a
-standard deviation. <em>Medical Care</em> 41(5):582-592.</p>
+standard deviation. <em>Medical Care</em> 41(5):582-592. <a href="doi:10.1097/01.mlr.0000062554.74615.4c" class="uri">doi:10.1097/01.mlr.0000062554.74615.4c</a></p>
+<p>Olejnik S, Algina J (2003). Generalized eta and omega squared
+statistics: measures of effect size for some common research designs.
+<em>Psychological Methods</em> 8(4):434-447. <a href="doi:10.1037/1082-989X.8.4.434" class="uri">doi:10.1037/1082-989X.8.4.434</a></p>
 <p>Sainani KL (2018). The problem with “magnitude-based inference”.
 <em>Medicine &amp; Science in Sports &amp; Exercise</em>
-50(10):2166-2176.</p>
+50(10):2166-2176. <a href="doi:10.1249/mss.0000000000001645" class="uri">doi:10.1249/mss.0000000000001645</a></p>
 <p>Sawilowsky SS (2009). New effect size rules of thumb. <em>Journal of
-Modern Applied Statistical Methods</em> 8(2):597-599.</p>
+Modern Applied Statistical Methods</em> 8(2):597-599. <a href="doi:10.22237/jmasm/1257035100" class="uri">doi:10.22237/jmasm/1257035100</a></p>
 <p>Welsh AH, Knight EJ (2015). “Magnitude-based inference”: a
 statistical review. <em>Medicine &amp; Science in Sports &amp;
-Exercise</em> 47(4):874-884.</p>
+Exercise</em> 47(4):874-884. <a href="doi:10.1249/mss.0000000000000451" class="uri">doi:10.1249/mss.0000000000000451</a></p>
 <p>Wyrwich KW, Tierney WM, Wolinsky FD (1999). Further evidence
 supporting an SEM-based criterion for identifying meaningful
 intra-individual changes in health-related quality of life. <em>Journal
-of Clinical Epidemiology</em> 52(9):861-873.</p>
+of Clinical Epidemiology</em> 52(9):861-873. <a href="doi:10.1016/s0895-4356(99)00071-2" class="uri">doi:10.1016/s0895-4356(99)00071-2</a></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -403,7 +588,7 @@ of Clinical Epidemiology</em> 52(9):861-873.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by drhrf.</p>
+  <p>Developed by Hercules Freitas.</p>
 </div>
 
 <div class="pkgdown-footer-right">

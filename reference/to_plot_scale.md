@@ -57,9 +57,10 @@ describes the conversion.
   mapping as
   [es_benchmarks("chen_or")](https://drhrf.github.io/effectzones/reference/es_benchmarks.md).
 
-- `or`/`rr` with `scale = "log"`: zones are symmetric on the log scale
-  around the null: a cut `c` gives boundaries `null / c` and `null * c`.
-  Use with `null = 1` and a log axis (e.g.
+- `or`/`rr` with `scale = "log"`: zones are multiplicative around the
+  null: a cut `c` gives boundaries `null / c` and `null * c` (symmetric
+  on the log scale unless `cuts_lower` differs from `cuts`). Use with
+  `null = 1` and a log axis (e.g.
   [`ggplot2::scale_x_log10()`](https://ggplot2.tidyverse.org/reference/scale_continuous.html)).
 
 - `or`/`rr` with `scale = "identity"`: for an axis showing log ratios on
@@ -78,44 +79,51 @@ it, for an axis showing standardised differences.
 Chinn S (2000). A simple method for converting an odds ratio to effect
 size for use in meta-analysis. *Statistics in Medicine*
 19(22):3127-3131.
+[doi:10.1002/1097-0258(20001130)19:22\<3127::AID-SIM784\>3.0.CO;2-M](https://doi.org/10.1002/1097-0258%2820001130%2919%3A22%3C3127%3A%3AAID-SIM784%3E3.0.CO%3B2-M)
 
 ## Examples
 
 ``` r
 to_plot_scale(es_benchmarks("cohen_d"), sd = 2)
 #> <es_thresholds> on the "raw" scale
-#> negligible: |effect| in [0, 0.4)
-#> small: |effect| in [0.4, 1)
-#> medium: |effect| in [1, 1.6)
-#> large: |effect| in [1.6, Inf)
+#> negligible: magnitude in [0, 0.4)
+#> small: magnitude in [0.4, 1)
+#> medium: magnitude in [1, 1.6)
+#> large: magnitude in [1.6, Inf)
 #> Source: Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,
-#> 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. Cohen offered these values as
-#> conventions for use only when no better basis for judging magnitude is
-#> available.
+#> 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587. Cohen
+#> offered these values as conventions for use only when no better basis for
+#> judging magnitude is available.
 #> Note: d cut-points multiplied by SD = 2.
 to_plot_scale(es_benchmarks("cohen_d"), scale = "log")
 #> <es_thresholds> on the "or" scale
-#> negligible: |effect| in [1, 1.44)
-#> small: |effect| in [1.44, 2.48)
-#> medium: |effect| in [2.48, 4.27)
-#> large: |effect| in [4.27, Inf)
+#> negligible: magnitude in [1, 1.44)
+#> small: magnitude in [1.44, 2.48)
+#> medium: magnitude in [2.48, 4.27)
+#> large: magnitude in [4.27, Inf)
 #> Source: Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,
-#> 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. Cohen offered these values as
-#> conventions for use only when no better basis for judging magnitude is
-#> available.
+#> 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587. Cohen
+#> offered these values as conventions for use only when no better basis for
+#> judging magnitude is available.
 #> Note: Approximation: log(OR) = d * pi / sqrt(3) (Chinn 2000), which assumes a
 #> logistic latent variable.
 to_plot_scale(es_benchmarks("chen_or"), scale = "log")
 #> <es_thresholds> on the "or" scale
-#> negligible: |effect| in [1, 1.68)
-#> small: |effect| in [1.68, 3.47)
-#> medium: |effect| in [3.47, 6.71)
-#> large: |effect| in [6.71, Inf)
+#> negligible (above null): magnitude in [1, 1.68)
+#> small (above null): magnitude in [1.68, 3.47)
+#> medium (above null): magnitude in [3.47, 6.71)
+#> large (above null): magnitude in [6.71, Inf)
+#> negligible (below null): magnitude in [1, 1.74)
+#> small (below null): magnitude in [1.74, 4.28)
+#> medium (below null): magnitude in [4.28, 11.4)
+#> large (below null): magnitude in [11.4, Inf)
 #> Source: Chen H, Cohen P, Chen S (2010). How big is a big odds ratio?
 #> Interpreting the magnitudes of odds ratios in epidemiological studies.
-#> Communications in Statistics - Simulation and Computation 39(4):860-864. These
-#> odds ratios correspond to d = 0.2, 0.5 and 0.8 only when the event rate in the
-#> reference group is 1%; the equivalent odds ratios are smaller at higher
-#> baseline risks.
-#> Note: Zones symmetric on the log scale: boundaries at null / c and null * c.
+#> Communications in Statistics - Simulation and Computation 39(4):860-864.
+#> doi:10.1080/03610911003650383. These odds ratios correspond to d = 0.2, 0.5 and
+#> 0.8 only when the event rate in the reference group is 1%; the equivalent odds
+#> ratios are smaller at higher baseline risks. The published values are for OR >
+#> 1; the boundaries below 1 (1/1.74, 1/4.28, 1/11.40) apply the same method to
+#> negative d. Use chen_or_thresholds() for other baseline risks.
+#> Note: Multiplicative zones: boundaries at null / c and null * c.
 ```

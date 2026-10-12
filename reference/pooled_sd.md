@@ -33,6 +33,16 @@ A single positive number.
   `contrast()` or [`pairs()`](https://rdrr.io/r/graphics/pairs.html)) do
   not keep it; use the `emmeans()` grid or the model.
 
+`pooled_sd()` always returns the residual SD of the model it is given.
+In a one-way model it equals the pooled within-group SD, the usual
+denominator of Cohen's d. With several terms it is the SD left after
+removing all of them: right for manipulated (randomised) factors, too
+small for measured factors and covariates. To get the generalized
+standardizer (Olejnik & Algina 2003), give it a model refitted with only
+the manipulated factors, e.g. `pooled_sd(update(model, . ~ treatment))`.
+[`plot_contrasts()`](https://drhrf.github.io/effectzones/reference/plot_contrasts.md)
+uses the residual SD automatically only for one-way models.
+
 The residual SD is one defensible choice, not the only one. When the
 thresholds were defined relative to another SD (e.g. the baseline SD of
 the outcome in the target population), supply that value as `sd`

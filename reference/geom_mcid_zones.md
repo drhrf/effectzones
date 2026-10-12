@@ -24,6 +24,7 @@ geom_mcid_zones(
   label_size = 3,
   label_colour = "grey20",
   n_slices = 40,
+  zone_labels = NULL,
   title = NULL,
   show.legend = NA,
   ...
@@ -56,7 +57,7 @@ geom_mcid_zones(
 - beyond:
 
   `"flat"` (default): one colour beyond the MCID. `"multiples"`:
-  deepening colour at 2x and 3x the MCID.
+  deepening colour at 2x and 3x the MCID (point thresholds only).
 
 - palette:
 
@@ -87,6 +88,14 @@ geom_mcid_zones(
 - n_slices:
 
   Number of thin rectangles used to draw each soft transition.
+
+- zone_labels:
+
+  Optional new names for the three zones: an unnamed vector or list in
+  the order harm, trivial, benefit
+  (`c("worse", "no important change", "better")`), or a named vector
+  that renames only some (`c(trivial = "no important change")`). With
+  `beyond = "multiples"` the graded zones reuse these names.
 
 - title:
 
@@ -134,8 +143,11 @@ threshold.
 
 With `beyond = "multiples"` the colour keeps deepening at 2 and 3 times
 the MCID (capped at 3), so that an estimate at 1.2 x MCID and one at 4 x
-MCID sit on visibly different backgrounds. Multiples are of the midpoint
-when the MCID is a range.
+MCID sit on visibly different backgrounds. Multiples require point
+thresholds: if the MCID is a range, its multiples are uncertain too (a
+4-6 MCID puts "2x" anywhere from 8 to 12), and drawing them as sharp
+lines would overstate precision. `beyond = "multiples"` with a range is
+therefore an error.
 
 ## Palettes
 
@@ -157,6 +169,7 @@ Clinical Trials* 10(4):407-415.
 
 McGlothlin AE, Lewis RJ (2014). Minimal clinically important difference:
 defining what really matters to patients. *JAMA* 312(13):1342-1343.
+[doi:10.1001/jama.2014.13128](https://doi.org/10.1001/jama.2014.13128)
 
 ## See also
 

@@ -15,6 +15,8 @@
   : Effect-size thresholds
 - [`es_benchmarks()`](https://drhrf.github.io/effectzones/reference/es_benchmarks.md)
   : Published effect-size benchmark sets
+- [`chen_or_thresholds()`](https://drhrf.github.io/effectzones/reference/chen_or_thresholds.md)
+  : Odds-ratio thresholds equivalent to d at a given baseline risk
 
 ## MCID thresholds
 

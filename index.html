@@ -6,19 +6,21 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Interpretive Background Zones for Estimates and Confidence Intervals • effectzones</title>
-<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="katex-auto.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Interpretive Background Zones for Estimates and Confidence Intervals">
-<meta name="description" content="A ggplot2 extension that draws interpretive background zones behind estimates and confidence intervals in forest plots, post-hoc contrast plots and coefficient plots. Two modes are provided: effect-size magnitude zones based on published benchmark sets (e.g. Cohen, 1988, ISBN:0-8058-0283-5) and clinical relevance zones based on a minimal clinically important difference (Jaeschke, Singer and Guyatt, 1989 &lt;doi:10.1016/0197-2456(89)90005-6&gt;). The package does not compute, classify or reinterpret inference; it only draws a background against which existing estimates and intervals are read.">
-<meta property="og:description" content="A ggplot2 extension that draws interpretive background zones behind estimates and confidence intervals in forest plots, post-hoc contrast plots and coefficient plots. Two modes are provided: effect-size magnitude zones based on published benchmark sets (e.g. Cohen, 1988, ISBN:0-8058-0283-5) and clinical relevance zones based on a minimal clinically important difference (Jaeschke, Singer and Guyatt, 1989 &lt;doi:10.1016/0197-2456(89)90005-6&gt;). The package does not compute, classify or reinterpret inference; it only draws a background against which existing estimates and intervals are read.">
+<meta name="description" content="A ggplot2 extension that draws interpretive background zones behind estimates and confidence intervals in forest plots, post-hoc contrast plots and coefficient plots. Two modes are provided: effect-size magnitude zones based on published benchmark sets (e.g. Cohen, 1988, &lt;doi:10.4324/9780203771587&gt;) and clinical relevance zones based on a minimal clinically important difference (Jaeschke, Singer and Guyatt, 1989 &lt;doi:10.1016/0197-2456(89)90005-6&gt;). The package does not compute, classify or reinterpret inference; it only draws a background against which existing estimates and intervals are read.">
+<meta property="og:description" content="A ggplot2 extension that draws interpretive background zones behind estimates and confidence intervals in forest plots, post-hoc contrast plots and coefficient plots. Two modes are provided: effect-size magnitude zones based on published benchmark sets (e.g. Cohen, 1988, &lt;doi:10.4324/9780203771587&gt;) and clinical relevance zones based on a minimal clinically important difference (Jaeschke, Singer and Guyatt, 1989 &lt;doi:10.1016/0197-2456(89)90005-6&gt;). The package does not compute, classify or reinterpret inference; it only draws a background against which existing estimates and intervals are read.">
+<meta property="og:image" content="https://drhrf.github.io/effectzones/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="index.html">effectzones</a>
 
@@ -33,6 +35,12 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="articles/effectzones.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/mathematics.html">The mathematics behind effectzones</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -48,8 +56,10 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="effectzones">effectzones<a class="anchor" aria-label="anchor" href="#effectzones"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="effectzones-">effectzones <a class="anchor" aria-label="anchor" href="#effectzones-"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
 <p>effectzones is a ggplot2 extension that draws <strong>interpretive background zones</strong> behind estimates and confidence intervals, in forest plots, post-hoc contrast plots and coefficient plots.</p>
@@ -70,20 +80,20 @@
 <div class="section level2">
 <h2 id="tukey-contrasts-over-effect-size-zones">Tukey contrasts over effect-size zones<a class="anchor" aria-label="anchor" href="#tukey-contrasts-over-effect-size-zones"></a>
 </h2>
-<p>Standardised thresholds (here Cohen’s d, used only as an illustration; see the vignette on choosing a set) are converted to the raw scale of the contrasts with the model’s pooled SD. <code><a href="reference/plot_contrasts.html">plot_contrasts()</a></code> says which SD it used.</p>
+<p>Standardised thresholds (here Cohen’s d, used only as an illustration; see the vignette on choosing a set) are converted to the raw scale of the contrasts. For a one-way model <code><a href="reference/plot_contrasts.html">plot_contrasts()</a></code> uses the model’s pooled within-group SD and says so; for anything more complex it asks you to choose the SD.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drhrf/effectzones" class="external-link">effectzones</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aov.html" class="external-link">aov</a></span><span class="op">(</span><span class="va">breaks</span> <span class="op">~</span> <span class="va">tension</span>, data <span class="op">=</span> <span class="va">warpbreaks</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/TukeyHSD.html" class="external-link">TukeyHSD</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>,</span>
-<span>  zones <span class="op">=</span> <span class="fu"><a href="reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>, labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>  model <span class="op">=</span> <span class="va">fit</span></span>
+<span>  <span class="va">fit</span>,</span>
+<span>  zones <span class="op">=</span> <span class="fu"><a href="reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"cohen_d"</span><span class="op">)</span>, labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; ℹ Converting d thresholds with the model's pooled (residual) SD = 11.9.</span></span>
+<span><span class="co">#&gt; ℹ Converting d thresholds with the residual (pooled within-group) SD of the</span></span>
+<span><span class="co">#&gt;   one-way model: 11.9.</span></span>
 <span><span class="co">#&gt;   Set `sd` in the zones layer to use a different SD.</span></span></code></pre></div>
-<p><img src="reference/figures/README-tukey-es-1.png" width="100%"></p>
+<p><img src="reference/figures/README-tukey-es-1.png" alt="Forest plot of the three Tukey contrasts between tension levels in warpbreaks, with confidence intervals drawn over grey background bands marking negligible, small, medium and large Cohen's d zones." width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="the-same-contrasts-over-mcid-zones">The same contrasts over MCID zones<a class="anchor" aria-label="anchor" href="#the-same-contrasts-over-mcid-zones"></a>
@@ -95,13 +105,13 @@
 <span>  direction <span class="op">=</span> <span class="st">"lower_better"</span>,</span>
 <span>  source <span class="op">=</span> <span class="st">"Hypothetical anchors"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/TukeyHSD.html" class="external-link">TukeyHSD</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, zones <span class="op">=</span> <span class="fu"><a href="reference/geom_mcid_zones.html">geom_mcid_zones</a></span><span class="op">(</span><span class="va">mcid</span>, labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-tukey-mcid-1.png" width="100%"></p>
+<span><span class="fu"><a href="reference/plot_contrasts.html">plot_contrasts</a></span><span class="op">(</span><span class="va">fit</span>, zones <span class="op">=</span> <span class="fu"><a href="reference/geom_mcid_zones.html">geom_mcid_zones</a></span><span class="op">(</span><span class="va">mcid</span>, labels <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-tukey-mcid-1.png" alt="The same Tukey contrasts drawn over orange harm, white trivial and blue benefit zones; the boundary between trivial and benefit fades across the uncertain MCID range." width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="an-odds-ratio-forest-plot-on-a-log-axis">An odds-ratio forest plot on a log axis<a class="anchor" aria-label="anchor" href="#an-odds-ratio-forest-plot-on-a-log-axis"></a>
 </h2>
-<p>Ratio zones are symmetric on the log scale around 1. The Chen, Cohen &amp; Chen (2010) odds ratios correspond to d = 0.2 / 0.5 / 0.8 only at a 1% baseline risk.</p>
+<p>The Chen, Cohen &amp; Chen (2010) odds ratios correspond to d = 0.2 / 0.5 / 0.8 at a 1% baseline risk; <code><a href="reference/chen_or_thresholds.html">chen_or_thresholds()</a></code> computes them for any baseline risk. Under their method the zones below 1 are not mirror images of those above 1, and are drawn accordingly.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">or</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  term <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Exposure A"</span>, <span class="st">"Exposure B"</span>, <span class="st">"Exposure C"</span>, <span class="st">"Exposure D"</span><span class="op">)</span>,</span>
@@ -110,20 +120,25 @@
 <span>  upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.08</span>, <span class="fl">2.06</span>, <span class="fl">4.36</span>, <span class="fl">11.3</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">or</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">estimate</span>, <span class="va">term</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="reference/es_benchmarks.html">es_benchmarks</a></span><span class="op">(</span><span class="st">"chen_or"</span><span class="op">)</span>, scale <span class="op">=</span> <span class="st">"log"</span>, null <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="reference/geom_es_zones.html">geom_es_zones</a></span><span class="op">(</span><span class="fu"><a href="reference/chen_or_thresholds.html">chen_or_thresholds</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, scale <span class="op">=</span> <span class="st">"log"</span>, null <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">1</span>, linetype <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="va">lower</span>, xmax <span class="op">=</span> <span class="va">upper</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Odds ratio (95% CI)"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-or-1.png" width="100%"></p>
-<p>Add the zones layer <strong>before</strong> points and error bars so they are drawn on top. Zones do not change the axis limits unless you set <code>expand = TRUE</code>.</p>
+<p><img src="reference/figures/README-or-1.png" alt="Odds-ratio forest plot on a log axis with four exposures, over grey effect-size zones that are not symmetric around an odds ratio of 1." width="100%"></p>
+<p>Add the zones layer <strong>before</strong> points and error bars so they are drawn on top. Zones do not change the axis limits unless you set <code>expand = TRUE</code>, and the legend lists only the zones that appear in the plot. Rename zones with <code>zone_labels</code>, e.g. <code>zone_labels = c(negligible = "below small")</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="what-effectzones-deliberately-does-not-do">What effectzones deliberately does not do<a class="anchor" aria-label="anchor" href="#what-effectzones-deliberately-does-not-do"></a>
 </h2>
 <p>It does not label results as “meaningful” or “likely beneficial”, and it does not compute the probability that an effect lies in a zone. That is magnitude-based inference, which has been shown to be statistically unsound (Welsh &amp; Knight 2015; Sainani 2018). See <code><a href="articles/effectzones.html">vignette("effectzones")</a></code> and <a href="DESIGN.html">DESIGN.md</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>The <a href="https://drhrf.github.io/effectzones/">package website</a> has the reference, the guide <em>Reading estimates against zones</em>, and <a href="https://drhrf.github.io/effectzones/articles/mathematics.html"><em>The mathematics behind effectzones</em></a>, which works through every calculation step by step with interactive examples.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -153,7 +168,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>drhrf <br><small class="roles"> Author, maintainer </small>   </li>
+<li>Hercules Freitas <br><small class="roles"> Author, maintainer </small>   </li>
 </ul>
 </div>
 
@@ -162,6 +177,7 @@
 <ul class="list-unstyled">
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 <li><a href="https://github.com/drhrf/effectzones/actions/workflows/check-standard.yaml" class="external-link"><img src="https://github.com/drhrf/effectzones/actions/workflows/check-standard.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/drhrf/effectzones/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/drhrf/effectzones/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
 </ul>
 </div>
 
@@ -170,7 +186,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by drhrf.</p>
+  <p>Developed by Hercules Freitas.</p>
 </div>
 
 <div class="pkgdown-footer-right">

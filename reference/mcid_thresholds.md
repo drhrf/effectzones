@@ -82,6 +82,7 @@ Clinical Trials* 10(4):407-415.
 
 McGlothlin AE, Lewis RJ (2014). Minimal clinically important difference:
 defining what really matters to patients. *JAMA* 312(13):1342-1343.
+[doi:10.1001/jama.2014.13128](https://doi.org/10.1001/jama.2014.13128)
 
 ## See also
 

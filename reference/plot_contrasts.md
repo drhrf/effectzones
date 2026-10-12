@@ -23,6 +23,16 @@ plot_contrasts(
   xlab = "Difference"
 )
 
+# S3 method for class 'aov'
+plot_contrasts(
+  x,
+  zones = NULL,
+  ...,
+  which = NULL,
+  conf.level = 0.95,
+  xlab = NULL
+)
+
 # S3 method for class 'TukeyHSD'
 plot_contrasts(x, zones = NULL, ..., which = NULL, model = NULL, xlab = NULL)
 
@@ -34,10 +44,9 @@ plot_contrasts(x, zones = NULL, ..., model = NULL, xlab = NULL)
 
 - x:
 
-  A `TukeyHSD` object, an `emmGrid` of contrasts (e.g. from
-  [`emmeans::contrast()`](https://rvlenth.github.io/emmeans/reference/contrast.html)
-  or [`pairs()`](https://rdrr.io/r/graphics/pairs.html)), or a data
-  frame with columns `term`, `estimate`, `lower`, `upper`.
+  An `aov` fit, a `TukeyHSD` object, an `emmGrid` (of means or of
+  contrasts), or a data frame with columns `term`, `estimate`, `lower`,
+  `upper`.
 
 - zones:
 
@@ -55,8 +64,8 @@ plot_contrasts(x, zones = NULL, ..., model = NULL, xlab = NULL)
 
 - model:
 
-  A fitted model used to fill a missing `sd` in `zones` (`TukeyHSD`
-  objects and data frames do not carry their model).
+  A fitted model (or, for emmeans contrasts, the emmeans grid of means)
+  used to fill a missing `sd` in `zones`.
 
 - null:
 
@@ -69,41 +78,98 @@ plot_contrasts(x, zones = NULL, ..., model = NULL, xlab = NULL)
 
 - which:
 
-  For `TukeyHSD`: the term(s) to plot. Default all; several terms are
-  shown in separate panels.
+  For `aov` and `TukeyHSD`: the term(s) to plot. Default all; several
+  terms are shown in separate panels.
+
+- conf.level:
+
+  For `aov`: family-wise confidence level of the Tukey intervals.
 
 ## Value
 
 A ggplot object.
 
-## Details
+## Which SD converts d to the raw scale
 
-If the zones need an SD (standardised `"d"` thresholds drawn over raw
-differences) and none was given, it is taken from the model:
-[`pooled_sd()`](https://drhrf.github.io/effectzones/reference/pooled_sd.md)
-of `model`, or of `x` itself for `emmGrid` objects. A message says so.
-Without a model, an error asks for `sd`.
+Standardised (`"d"`) thresholds must be multiplied by an SD before they
+can be drawn over raw differences. `plot_contrasts()` takes that SD from
+the fitted model only when the choice is not an extra assumption:
+
+- **One-way, fixed-effects, unweighted linear model** (e.g.
+  `aov(y ~ group)`): the residual SD is the pooled within-group SD, the
+  usual denominator of Cohen's d. It is the same quantity the ANOVA and
+  the Tukey intervals already rely on (equal variances). It is used
+  automatically and a message reports its value.
+
+- **Anything else** (several factors, covariates, interactions, weights,
+  GLMs): the residual SD has the variance of every other term removed.
+  That is right for manipulated (randomised) factors and too small for
+  measured factors and covariates, and the model does not record which
+  is which. The function stops and explains the rigorous procedure: (1)
+  decide what SD the benchmark refers to, before seeing results; (2)
+  preferably use an external, pre-specified SD; (3) otherwise refit with
+  only the manipulated factors and use that residual SD (Olejnik &
+  Algina 2003), e.g. `sd = pooled_sd(update(model, . ~ treatment))`; if
+  every term was manipulated, `sd = pooled_sd(model)`; (4) report the
+  SD's own uncertainty.
+
+## Where the model comes from
+
+- `aov` fits: pass the fit itself; Tukey contrasts are computed from it.
+
+- `TukeyHSD` objects store the call that fitted the model but not the
+  model. When an SD is needed and `model` is not given, the call is
+  re-evaluated in the calling environment, and the refitted model is
+  used only if its Tukey contrasts reproduce `x` exactly; otherwise an
+  error asks for `model`. A message says when this happens.
+
+- `emmGrid` of estimated means (from `emmeans()`): pairwise contrasts
+  are computed (`emmeans::contrast(method = "pairwise")`,
+  Tukey-adjusted), and the grid's own residual SD is used.
+
+- `emmGrid` of contrasts (from `contrast()` or
+  [`pairs()`](https://rdrr.io/r/graphics/pairs.html)): emmeans does not
+  keep the residual SD in contrast grids, so pass the means grid or the
+  fit as `model`, or set `sd`.
+
+## References
+
+Olejnik S, Algina J (2003). Generalized eta and omega squared
+statistics: measures of effect size for some common research designs.
+*Psychological Methods* 8(4):434-447.
+[doi:10.1037/1082-989X.8.4.434](https://doi.org/10.1037/1082-989X.8.4.434)
 
 ## See also
 
 [`geom_es_zones()`](https://drhrf.github.io/effectzones/reference/geom_es_zones.md),
-[`geom_mcid_zones()`](https://drhrf.github.io/effectzones/reference/geom_mcid_zones.md)
+[`geom_mcid_zones()`](https://drhrf.github.io/effectzones/reference/geom_mcid_zones.md),
+[`pooled_sd()`](https://drhrf.github.io/effectzones/reference/pooled_sd.md)
 
 ## Examples
 
 ``` r
 fit <- aov(weight ~ group, data = PlantGrowth)
-plot_contrasts(TukeyHSD(fit))
+plot_contrasts(fit)
 
 
-plot_contrasts(TukeyHSD(fit),
-               zones = geom_es_zones(es_benchmarks("cohen_d")),
-               model = fit)
-#> ℹ Converting d thresholds with the model's pooled (residual) SD = 0.623.
+# The residual SD of the one-way model converts d to raw differences
+plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d")))
+#> ℹ Converting d thresholds with the residual (pooled within-group) SD of the
+#>   one-way model: 0.623.
 #>   Set `sd` in the zones layer to use a different SD.
 
 
-plot_contrasts(TukeyHSD(fit),
+# A TukeyHSD object works too: its model is refitted and checked
+tk <- TukeyHSD(fit)
+plot_contrasts(tk, zones = geom_es_zones(es_benchmarks("cohen_d")))
+#> ℹ Refitted `aov(formula = weight ~ group, data = PlantGrowth)` to get the
+#>   model's SD; it reproduces these Tukey contrasts exactly.
+#> ℹ Converting d thresholds with the residual (pooled within-group) SD of the
+#>   one-way model: 0.623.
+#>   Set `sd` in the zones layer to use a different SD.
+
+
+plot_contrasts(fit,
                zones = geom_mcid_zones(mcid_thresholds(lower = -0.3,
                                                        upper = c(0.4, 0.6))))
 ```
