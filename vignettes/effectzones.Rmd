@@ -1,0 +1,19 @@
+---
+title: "Reading estimates against zones"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Reading estimates against zones}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(effectzones)
+```
