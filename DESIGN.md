@@ -68,9 +68,14 @@ implemented and documented.
   only for a one-way, fixed-effects, unweighted linear model, where it is
   the pooled within-group SD (the conventional denominator of d, under the
   same equal-variance assumption as the ANOVA and Tukey intervals). With
-  more terms the residual SD gives a partial d, so the function stops and
-  asks for `sd` (`sd = pooled_sd(model)` accepts the residual SD
-  explicitly). The model can come from an `aov` fit, an emmeans grid of
+  more terms the residual SD has every other term's variance removed:
+  right for manipulated factors, too small for measured factors and
+  covariates, and the model does not record which is which. The function
+  stops with an error that teaches the procedure: decide what SD the
+  benchmark refers to; prefer an external pre-specified SD; otherwise refit
+  with only the manipulated factors (Olejnik & Algina 2003 generalized
+  standardizer); report the SD's sampling uncertainty. The model can come
+  from an `aov` fit, an emmeans grid of
   means (which carries `sigma`), or a `TukeyHSD` object: its stored call is
   re-evaluated in the calling environment and the refit is accepted only if
   it reproduces the Tukey contrasts exactly. emmeans contrast grids drop
@@ -98,6 +103,15 @@ implemented and documented.
   methods, and an `aov` method.
 
 ## Open questions
+
+* **Drawing the SD's sampling uncertainty** (step 4 of the SD procedure).
+  The boundaries d x SD could fade across d x [lower, upper] of the SD's
+  confidence interval (chi-square interval on the residual df), reusing the
+  range-MCID fade. Not implemented; the error message and vignette tell
+  users to report it.
+* **A `measured =` helper**, e.g. `pooled_sd(model, measured = "sex")`,
+  that refits without the named terms. Currently users call
+  `pooled_sd(update(model, . ~ treatment))` themselves.
 
 * Some users may prefer that `chen_or_thresholds()` also accept the
   baseline risk of the exposed group (i.e. odds ratios expressed the other

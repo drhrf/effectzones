@@ -78,12 +78,17 @@ usual denominator of Cohen's d. It is the same quantity the ANOVA and
 the Tukey intervals already rely on (equal variances). It is used
 automatically and a message reports its value.
 \item \strong{Anything else} (several factors, covariates, interactions,
-weights, GLMs): the residual SD is what remains after removing the
-other effects, so a "d" built on it is a partial standardised
-difference and is usually larger than d computed from the raw
-within-group SD. Whether that is what your benchmarks mean is a
-substantive choice, so the function stops and asks for \code{sd}. Give
-\code{sd = pooled_sd(model)} to accept the residual SD, or any other SD.
+weights, GLMs): the residual SD has the variance of every other term
+removed. That is right for manipulated (randomised) factors and too
+small for measured factors and covariates, and the model does not
+record which is which. The function stops and explains the rigorous
+procedure: (1) decide what SD the benchmark refers to, before seeing
+results; (2) preferably use an external, pre-specified SD; (3)
+otherwise refit with only the manipulated factors and use that
+residual SD (Olejnik & Algina 2003), e.g.
+\code{sd = pooled_sd(update(model, . ~ treatment))}; if every term was
+manipulated, \code{sd = pooled_sd(model)}; (4) report the SD's own
+uncertainty.
 }
 }
 
@@ -119,6 +124,11 @@ plot_contrasts(tk, zones = geom_es_zones(es_benchmarks("cohen_d")))
 plot_contrasts(fit,
                zones = geom_mcid_zones(mcid_thresholds(lower = -0.3,
                                                        upper = c(0.4, 0.6))))
+}
+\references{
+Olejnik S, Algina J (2003). Generalized eta and omega squared statistics:
+measures of effect size for some common research designs. \emph{Psychological
+Methods} 8(4):434-447. \doi{10.1037/1082-989X.8.4.434}
 }
 \seealso{
 \code{\link[=geom_es_zones]{geom_es_zones()}}, \code{\link[=geom_mcid_zones]{geom_mcid_zones()}}, \code{\link[=pooled_sd]{pooled_sd()}}

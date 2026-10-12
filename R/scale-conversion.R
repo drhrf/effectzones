@@ -152,12 +152,15 @@ to_plot_scale.mcid_thresholds <- function(thresholds, sd = NULL, scale = c("iden
 #'   `contrast()` or `pairs()`) do not keep it; use the `emmeans()` grid or
 #'   the model.
 #'
-#' `pooled_sd()` always returns the residual SD when asked. In a one-way
-#' model it equals the pooled within-group SD, the usual denominator of
-#' Cohen's d. With several factors or covariates it is the SD left after
-#' removing them, so d computed from it is a partial standardised
-#' difference; [plot_contrasts()] therefore uses it automatically only for
-#' one-way models.
+#' `pooled_sd()` always returns the residual SD of the model it is given. In
+#' a one-way model it equals the pooled within-group SD, the usual
+#' denominator of Cohen's d. With several terms it is the SD left after
+#' removing all of them: right for manipulated (randomised) factors, too
+#' small for measured factors and covariates. To get the generalized
+#' standardizer (Olejnik & Algina 2003), give it a model refitted with only
+#' the manipulated factors, e.g. `pooled_sd(update(model, . ~ treatment))`.
+#' [plot_contrasts()] uses the residual SD automatically only for one-way
+#' models.
 #'
 #' The residual SD is one defensible choice, not the only one. When the
 #' thresholds were defined relative to another SD (e.g. the baseline SD of

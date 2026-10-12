@@ -144,29 +144,87 @@ tk <- TukeyHSD(fit)
 plot_contrasts(tk, zones = geom_es_zones(es_benchmarks("cohen_d")))
 ```
 
-**Everything else.** With several factors, covariates or interactions, the
-residual SD is what is left after removing the other effects. A d built on
-it is a *partial* standardised difference, larger than the d you would get
-from the raw within-group SD, and whether your benchmarks meant that is a
-substantive question. In that case `plot_contrasts()` does not choose: it
-stops and asks for `sd`. You can accept the residual SD explicitly with
-`sd = pooled_sd(model)`, or give the SD your benchmarks refer to:
+**Everything else.** With several factors, covariates or interactions,
+the residual SD has the variance of every other term removed. Whether that
+is right depends on what those terms are, and the model object cannot tell:
 
-```{r two-way, error = TRUE, fig.height = 2.6}
-fit2 <- aov(breaks ~ wool + tension, data = warpbreaks)
-plot_contrasts(fit2, which = "tension",
+* **Manipulated (randomised) factors** — a second treatment, a dose, a task
+  condition — create variation that does not exist in the population.
+  Removing it from the SD is correct.
+* **Measured factors and covariates** — sex, age, site, baseline score —
+  are ordinary differences between people. Removing them shrinks the SD,
+  inflates d and narrows the zones.
+
+So `plot_contrasts()` does not choose. It stops and explains the rigorous
+procedure, in order of preference:
+
+1. **Decide what the benchmark's SD refers to**, and fix it before seeing
+   the results. Usually that is the SD of the outcome in the target
+   population, at baseline.
+2. **Best option: an external, pre-specified SD**, for example the baseline
+   SD from the protocol or from a large prior study. It doesn't depend on
+   the model, isn't inflated by covariate adjustment, and can't be tuned
+   after looking at the contrasts. This is what `sd =` allows.
+3. **If the SD must come from the data**: refit the model with only the
+   manipulated factors (the factor of interest, other randomised factors,
+   and their interactions), and use that model's residual SD. Measured
+   factors and covariates go back into the error term. That gives the SD of
+   people within treatment cells, the generalized standardizer behind
+   Olejnik & Algina (2003). For a randomised ANCOVA this amounts to using the
+   unadjusted within-group SD instead of the covariate-adjusted one.
+4. **State the remaining sampling uncertainty.** The SD is still an
+   estimate with finite degrees of freedom, so it has its own confidence
+   interval, and that uncertainty carries into where each boundary sits
+   (d × SD). effectzones does not draw it yet; report the SD, its source and
+   its confidence interval with the plot.
+
+This can't be fully automatic: whether a factor is manipulated or measured
+depends on the study design, and the model doesn't record it.
+
+An example where it matters. In the `CO2` data, plants were chilled or not
+(manipulated) and came from Quebec or Mississippi (measured: an origin, not
+a treatment). At the highest CO₂ concentration:
+
+```{r co2-stop, error = TRUE}
+co2 <- subset(CO2, conc == 1000)
+fit_co2 <- aov(uptake ~ Treatment + Type, data = co2)
+plot_contrasts(fit_co2, which = "Treatment",
                zones = geom_es_zones(es_benchmarks("cohen_d")))
+```
 
+The residual SD of the full model removes the large difference between
+origins; refitting with the manipulated factor only puts it back:
+
+```{r co2-sds}
+pooled_sd(fit_co2)                             # origin removed: too small
+pooled_sd(update(fit_co2, . ~ Treatment))      # step 3: the standardizer
+```
+
+Using the first would make every zone 2.3 times narrower than the
+benchmark intends. With step 3:
+
+```{r co2-plot, fig.height = 2}
+plot_contrasts(fit_co2, which = "Treatment",
+               zones = geom_es_zones(es_benchmarks("cohen_d"),
+                                     sd = pooled_sd(update(fit_co2, . ~ Treatment)),
+                                     labels = TRUE))
+```
+
+When every term was manipulated, as in `warpbreaks` (wool type and tension
+were both set by the experimenter), step 3 keeps them all and the model's
+own residual SD is the standardizer:
+
+```{r two-way, fig.height = 2.6}
+fit2 <- aov(breaks ~ wool + tension, data = warpbreaks)
 plot_contrasts(fit2, which = "tension",
                zones = geom_es_zones(es_benchmarks("cohen_d"),
                                      sd = pooled_sd(fit2)))
 ```
 
-Other SDs can be the better choice: a **baseline or reference-population
-SD** when the benchmark was defined relative to it, or when the treatment
-changes the variance. In models with several variance components (repeated
-measures, random effects) there is no single SD; supply the one your
-benchmark refers to.
+In models with several variance components (repeated measures, random
+effects) there is no single residual SD; supply the one your benchmark
+refers to. The calculations behind each step are worked through in the
+article *The mathematics behind effectzones* on the package website.
 
 For **ratios** (odds ratios, risk ratios), a cut c is drawn at c and 1/c,
 symmetric on the log scale, unless the thresholds say otherwise (below).
@@ -369,6 +427,10 @@ defining what really matters to patients. *JAMA* 312(13):1342-1343. doi:10.1001/
 Norman GR, Sloan JA, Wyrwich KW (2003). Interpretation of changes in
 health-related quality of life: the remarkable universality of half a
 standard deviation. *Medical Care* 41(5):582-592. doi:10.1097/01.mlr.0000062554.74615.4c
+
+Olejnik S, Algina J (2003). Generalized eta and omega squared statistics:
+measures of effect size for some common research designs. *Psychological
+Methods* 8(4):434-447. doi:10.1037/1082-989X.8.4.434
 
 Sainani KL (2018). The problem with "magnitude-based inference". *Medicine
 & Science in Sports & Exercise* 50(10):2166-2176. doi:10.1249/mss.0000000000001645

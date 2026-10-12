@@ -63,6 +63,18 @@ test_that("the SD is not chosen automatically beyond one-way models", {
     plot_contrasts(fit2, zones = geom_es_zones(es_benchmarks("cohen_d"))),
     "pooled_sd\\(model\\)"
   )
+  # The error teaches the procedure, with a refit tailored to the plotted term
+  err <- tryCatch(
+    plot_contrasts(fit2, which = "tension",
+                   zones = geom_es_zones(es_benchmarks("cohen_d"))),
+    error = function(e) conditionMessage(e)
+  )
+  for (pattern in c("rigorous procedure", "1\\. Decide", "external, pre-specified SD",
+                    "only the manipulated factors", "Olejnik & Algina",
+                    "update\\(model, \\. ~ tension\\)", "sampling uncertainty",
+                    "can't be fully automatic")) {
+    expect_match(err, pattern)
+  }
   # The user can accept the residual SD explicitly
   p <- plot_contrasts(fit2, zones = geom_es_zones(es_benchmarks("cohen_d"),
                                                   sd = pooled_sd(fit2)))

@@ -16,12 +16,21 @@
 #'   the Tukey intervals already rely on (equal variances). It is used
 #'   automatically and a message reports its value.
 #' * **Anything else** (several factors, covariates, interactions,
-#'   weights, GLMs): the residual SD is what remains after removing the
-#'   other effects, so a "d" built on it is a partial standardised
-#'   difference and is usually larger than d computed from the raw
-#'   within-group SD. Whether that is what your benchmarks mean is a
-#'   substantive choice, so the function stops and asks for `sd`. Give
-#'   `sd = pooled_sd(model)` to accept the residual SD, or any other SD.
+#'   weights, GLMs): the residual SD has the variance of every other term
+#'   removed. That is right for manipulated (randomised) factors and too
+#'   small for measured factors and covariates, and the model does not
+#'   record which is which. The function stops and explains the rigorous
+#'   procedure: (1) decide what SD the benchmark refers to, before seeing
+#'   results; (2) preferably use an external, pre-specified SD; (3)
+#'   otherwise refit with only the manipulated factors and use that
+#'   residual SD (Olejnik & Algina 2003), e.g.
+#'   `sd = pooled_sd(update(model, . ~ treatment))`; if every term was
+#'   manipulated, `sd = pooled_sd(model)`; (4) report the SD's own
+#'   uncertainty.
+#' @references
+#' Olejnik S, Algina J (2003). Generalized eta and omega squared statistics:
+#' measures of effect size for some common research designs. *Psychological
+#' Methods* 8(4):434-447. \doi{10.1037/1082-989X.8.4.434}
 #'
 #' @section Where the model comes from:
 #' * `aov` fits: pass the fit itself; Tukey contrasts are computed from it.
@@ -137,7 +146,7 @@ plot_contrasts.TukeyHSD <- function(x, zones = NULL, ..., which = NULL,
     model <- function() recover_tukey_model(x, env)
   }
   build_contrast_plot(df, zones = zones, model = model, null = 0, xlab = xlab,
-                      log = FALSE, facet = length(which) > 1)
+                      log = FALSE, facet = length(which) > 1, focus = which)
 }
 
 #' @rdname plot_contrasts
@@ -176,11 +185,12 @@ plot_contrasts.emmGrid <- function(x, zones = NULL, ..., model = NULL,
                       null = if (ratio) 1 else 0, xlab = xlab, log = ratio)
 }
 
-build_contrast_plot <- function(df, zones, model, null, xlab, log, facet = FALSE) {
+build_contrast_plot <- function(df, zones, model, null, xlab, log, facet = FALSE,
+                                focus = NULL) {
   if (!is.null(zones) && !inherits(zones, "effectzones_zones")) {
     cli::cli_abort("{.arg zones} must come from {.fn geom_es_zones} or {.fn geom_mcid_zones}.")
   }
-  if (!is.null(zones)) zones <- fill_zone_sd(zones, model)
+  if (!is.null(zones)) zones <- fill_zone_sd(zones, model, focus = focus)
   df$term <- factor(df$term, levels = rev(unique(df$term)))
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$estimate, y = .data$term))
   if (!is.null(zones)) p <- p + zones
@@ -204,7 +214,8 @@ build_contrast_plot <- function(df, zones, model, null, xlab, log, facet = FALSE
 # Standardised effect-size zones over raw differences need an SD. Take it
 # from the model only when that is not an extra assumption (see the
 # "Which SD" section of ?plot_contrasts).
-fill_zone_sd <- function(zones, model, call = rlang::caller_env(2)) {
+fill_zone_sd <- function(zones, model, focus = NULL,
+                         call = quote(plot_contrasts())) {
   a <- zones$args
   needs_sd <- zones$type == "es" && is.null(a$sd) &&
     a$thresholds$metric == "d" && a$scale == "identity"
@@ -216,7 +227,7 @@ fill_zone_sd <- function(zones, model, call = rlang::caller_env(2)) {
       "i" = "Pass the fitted model as {.arg model}, or set {.arg sd} in the zones layer."
     ), call = call)
   }
-  s <- model_sd_for_d(model, call = call)
+  s <- model_sd_for_d(model, focus = focus, call = call)
   cli::cli_inform(c(
     "i" = "Converting d thresholds with the residual (pooled within-group) SD of the one-way model: {fmt_num(s)}.",
     " " = "Set {.arg sd} in the zones layer to use a different SD."
@@ -227,7 +238,7 @@ fill_zone_sd <- function(zones, model, call = rlang::caller_env(2)) {
 
 # Residual SD of a model, only when it equals the conventional pooled
 # within-group SD: a one-way, fixed-effects, unweighted linear model.
-model_sd_for_d <- function(model, call = rlang::caller_env()) {
+model_sd_for_d <- function(model, focus = NULL, call = rlang::caller_env()) {
   if (inherits(model, "emmGrid")) {
     terms <- model@model.info$terms
     s <- model@misc$sigma
@@ -247,13 +258,7 @@ model_sd_for_d <- function(model, call = rlang::caller_env()) {
     cli::cli_abort("Can't take an SD from {.obj_type_friendly {model}}; set {.arg sd} in the zones layer.",
                    call = call)
   }
-  if (!is.null(why)) {
-    cli::cli_abort(c(
-      "Not choosing an SD for you: {why}.",
-      "i" = "In such models the residual SD excludes variance explained by the other terms, so d computed from it is a partial standardised difference.",
-      "i" = "Set {.arg sd} in the zones layer: {.code sd = pooled_sd(model)} to accept the residual SD, or the SD your benchmarks refer to."
-    ), call = call)
-  }
+  if (!is.null(why)) abort_choose_sd(why, model, focus = focus, call = call)
   s
 }
 
@@ -299,4 +304,70 @@ recover_tukey_model <- function(x, env) {
     "i" = "Refitted {.code {deparse1(cl)}} to get the model's SD; it reproduces these Tukey contrasts exactly."
   ))
   refit
+}
+
+# The model is not one-way, so its residual SD is not automatically the right
+# standardizer. Stop, and teach how to choose one (see the "Which SD" section
+# of ?plot_contrasts and vignette("effectzones")).
+abort_choose_sd <- function(why, model, focus = NULL, call = rlang::caller_env()) {
+  labels <- if (inherits(model, "emmGrid")) {
+    attr(model@model.info$terms, "term.labels")
+  } else if (inherits(model, "lm")) {
+    attr(stats::terms(model), "term.labels")
+  }
+  focus <- intersect(focus %||% character(), labels)
+  if (!length(focus)) focus <- labels[1] %||% "group"
+  refit <- paste0("sd = pooled_sd(update(model, . ~ ",
+                  paste(focus, collapse = " * "), "))")
+  cli::cli_abort(c(
+    "Not choosing an SD for you: {why}.",
+    "i" = paste(
+      "The model's residual SD has the variance of every other term removed.",
+      "That is right for factors you manipulated (randomised), but too small",
+      "for factors you only measured (sex, age, site, baseline covariates):",
+      "it inflates d and narrows the zones."
+    ),
+    " " = "",
+    " " = "{.strong The rigorous procedure, in order of preference:}",
+    " " = paste(
+      "{.strong 1. Decide what the benchmark's SD refers to}, and fix it before",
+      "seeing the results. Usually that is the SD of the outcome in the target",
+      "population, at baseline."
+    ),
+    " " = paste(
+      "{.strong 2. Best option: an external, pre-specified SD}, for example the",
+      "baseline SD from the protocol or from a large prior study. It doesn't",
+      "depend on the model, isn't inflated by covariate adjustment, and can't",
+      "be tuned after looking at the contrasts. Give it as",
+      "{.code geom_es_zones(..., sd = <value>)}."
+    ),
+    " " = paste(
+      "{.strong 3. If the SD must come from the data}: refit the model with only",
+      "the manipulated factors (the factor of interest, other randomised",
+      "factors, and their interactions), and use that model's residual SD.",
+      "Measured factors and covariates go back into the error term. That gives",
+      "the SD of people within treatment cells, the generalized standardizer",
+      "behind Olejnik & Algina (2003). For a randomised ANCOVA this amounts to",
+      "the unadjusted within-group SD instead of the covariate-adjusted one.",
+      "For example, if only {.field {focus}} was randomised:",
+      "{.code {refit}}, where {.code model} is your fitted model.",
+      "If every term in the model was manipulated (a fully randomised",
+      "factorial), the model's own residual SD is the answer:",
+      "{.code sd = pooled_sd(model)}."
+    ),
+    " " = paste(
+      "{.strong 4. State the remaining sampling uncertainty.} The SD is still an",
+      "estimate with finite degrees of freedom, so it has its own confidence",
+      "interval, and that uncertainty carries into where each boundary sits",
+      "(d \u00d7 SD). effectzones does not draw it yet: report the SD, where",
+      "it came from, and its confidence interval with the plot."
+    ),
+    " " = "",
+    "!" = paste(
+      "This can't be fully automatic. Whether a factor is manipulated or",
+      "measured depends on the study design, and the model object doesn't",
+      "record it. So effectzones can't infer it; you have to say."
+    ),
+    "i" = "Worked examples: {.code vignette(\"effectzones\")}, section \"Converting thresholds to the plot scale, and which SD to use\"."
+  ), call = call)
 }

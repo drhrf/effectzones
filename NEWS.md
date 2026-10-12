@@ -24,3 +24,6 @@
   thresholds; with a range MCID the multiples would be uncertain too, so the
   combination is an error.
 * DOIs added for all cited references.
+* When `plot_contrasts()` cannot choose an SD for d (models with more than
+  one term), the error now explains the rigorous procedure step by step,
+  with a refit command tailored to the plotted term.
