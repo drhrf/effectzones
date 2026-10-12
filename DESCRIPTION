@@ -2,7 +2,7 @@ Package: effectzones
 Title: Interpretive Background Zones for Estimates and Confidence Intervals
 Version: 0.0.0.9000
 Authors@R: 
-    person("drhrf", , , "labinfos.uerj@gmail.com", role = c("aut", "cre"))
+    person("Hercules", "Freitas", , "hercules.freitas@uerj.br", role = c("aut", "cre"))
 Description: A 'ggplot2' extension that draws interpretive background zones
     behind estimates and confidence intervals in forest plots, post-hoc
     contrast plots and coefficient plots. Two modes are provided:

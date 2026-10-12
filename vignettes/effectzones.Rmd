@@ -50,23 +50,22 @@ The basic plot, a Tukey post-hoc comparison over effect-size zones:
 ```{r tukey-es}
 fit <- aov(weight ~ group, data = PlantGrowth)
 plot_contrasts(
-  TukeyHSD(fit),
-  zones = geom_es_zones(es_benchmarks("cohen_d"), labels = TRUE),
-  model = fit
+  fit,
+  zones = geom_es_zones(es_benchmarks("cohen_d"), labels = TRUE)
 )
 ```
 
 Two layers do the work, and you can use them in any ggplot:
 
-* `geom_es_zones()`: effect-size magnitude zones, symmetric around the null.
+* `geom_es_zones()`: effect-size magnitude zones around the null.
 * `geom_mcid_zones()`: harm / trivial / benefit zones from a minimal
   clinically important difference (MCID).
 
 Add the zones layer **first**, so that points, error bars and reference
 lines are drawn on top of it. By default the zones do not change the axis
 limits: they fill whatever range your data define, and the outermost zones
-extend to the panel edges. Use `expand = TRUE` if every cut-point should be
-visible.
+extend to the panel edges. The legend lists only the zones that appear in
+the plot. Use `expand = TRUE` if every cut-point should be visible.
 
 ## Choosing a benchmark set, and why there is no default
 
@@ -104,7 +103,16 @@ my_cuts
 ```
 
 The cited sources define cut-points. The label of the innermost zone
-("negligible") is a convention of this package, not of the sources.
+("negligible") is a convention of this package, not of the sources. Rename
+any zone with `zone_labels`, either all at once or by name:
+
+```{r rename, fig.height = 2.6}
+plot_contrasts(
+  fit,
+  zones = geom_es_zones(es_benchmarks("cohen_d"),
+                        zone_labels = c(negligible = "below small"))
+)
+```
 
 ## Converting thresholds to the plot scale, and which SD to use
 
@@ -116,28 +124,53 @@ thresholds have to be converted: a cut d is drawn at d × SD.
 to_plot_scale(es_benchmarks("cohen_d"), sd = 2)
 ```
 
-Which SD to use is not a technicality.
+Which SD to use is not a technicality: the same benchmark drawn with a
+different SD lands in a different place, and changes how the intervals
+read.
 
-* The **residual (pooled within-group) SD** of the model, `pooled_sd(fit)`,
-  is the usual choice for between-group contrasts and is what
-  `plot_contrasts()` uses when you pass `model` (it prints a message
-  saying so).
-* A **baseline or reference-population SD** may be more appropriate when
-  the benchmark was defined relative to it, or when the treatment changes
-  the variance.
-* In models with several variance components (repeated measures, random
-  effects) there is no single SD; supply the one your benchmark refers to.
+**One-way models.** In `aov(y ~ group)` the residual SD (the square root of
+the ANOVA's mean squared error) is the pooled within-group SD. That is the
+usual denominator of Cohen's d, and it is the same quantity the ANOVA F
+test and the Tukey intervals already rely on, under the same equal-variance
+assumption. `plot_contrasts()` therefore takes it from the model
+automatically and prints its value. It works from the `aov` fit, from an
+`emmeans()` grid of means, and from a `TukeyHSD` object: `TukeyHSD()` keeps
+the call that fitted the model but not the model itself, so the call is
+re-run and the result is used only if it reproduces the Tukey contrasts
+exactly.
 
-```{r sd-explicit, fig.height = 2.6}
-plot_contrasts(
-  TukeyHSD(fit),
-  zones = geom_es_zones(es_benchmarks("cohen_d"), sd = 0.8)
-)
+```{r tukey-object, fig.height = 2.6}
+tk <- TukeyHSD(fit)
+plot_contrasts(tk, zones = geom_es_zones(es_benchmarks("cohen_d")))
 ```
 
-For **ratios** (odds ratios, risk ratios), zones are symmetric on the log
-scale around 1: a cut c is drawn at c and 1/c. Use `scale = "log"`,
-`null = 1`, and a log axis:
+**Everything else.** With several factors, covariates or interactions, the
+residual SD is what is left after removing the other effects. A d built on
+it is a *partial* standardised difference, larger than the d you would get
+from the raw within-group SD, and whether your benchmarks meant that is a
+substantive question. In that case `plot_contrasts()` does not choose: it
+stops and asks for `sd`. You can accept the residual SD explicitly with
+`sd = pooled_sd(model)`, or give the SD your benchmarks refer to:
+
+```{r two-way, error = TRUE, fig.height = 2.6}
+fit2 <- aov(breaks ~ wool + tension, data = warpbreaks)
+plot_contrasts(fit2, which = "tension",
+               zones = geom_es_zones(es_benchmarks("cohen_d")))
+
+plot_contrasts(fit2, which = "tension",
+               zones = geom_es_zones(es_benchmarks("cohen_d"),
+                                     sd = pooled_sd(fit2)))
+```
+
+Other SDs can be the better choice: a **baseline or reference-population
+SD** when the benchmark was defined relative to it, or when the treatment
+changes the variance. In models with several variance components (repeated
+measures, random effects) there is no single SD; supply the one your
+benchmark refers to.
+
+For **ratios** (odds ratios, risk ratios), a cut c is drawn at c and 1/c,
+symmetric on the log scale, unless the thresholds say otherwise (below).
+Use `scale = "log"`, `null = 1`, and a log axis:
 
 ```{r or}
 or <- data.frame(
@@ -159,8 +192,24 @@ ggplot(or, aes(estimate, term)) +
 
 Chen, Cohen & Chen (2010) derived these odds ratios as the equivalents of
 d = 0.2, 0.5 and 0.8 **when the event rate in the reference group is 1%**.
-At higher baseline risks the equivalent odds ratios are smaller, so the
-`"chen_or"` zones are only appropriate near that baseline.
+Their method places both groups on a latent normal scale: with reference
+risk p0, a shift d gives an exposed risk p1 = Φ(Φ⁻¹(p0) + d), and the odds
+ratio follows from p0 and p1. `chen_or_thresholds()` implements it for any
+baseline risk; it reproduces the published 1% values (1.68, 3.47, 6.71) and
+5% values (1.52, 2.74, 4.72):
+
+```{r chen}
+chen_or_thresholds(0.10)
+```
+
+The same model shows that the zones are **not symmetric**. A protective
+shift of −d does not give 1/OR: at a 1% baseline, d = −0.8 corresponds to
+OR = 1/11.4, not 1/6.71. The two sides agree only at a 50% baseline. So
+both `es_benchmarks("chen_or")` and `chen_or_thresholds()` draw the
+boundaries below 1 from negative d. Chen et al. published only the values
+above 1; the ones below 1 apply their method and are labelled as such.
+Make sure the baseline risk is the risk in the reference group of *your*
+odds ratios (the denominator group).
 
 Alternatively, standardised thresholds can be converted to odds ratios with
 the approximation log(OR) = d × π / √3 (Chinn 2000), which assumes a
