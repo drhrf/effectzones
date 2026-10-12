@@ -27,3 +27,6 @@
 * When `plot_contrasts()` cannot choose an SD for d (models with more than
   one term), the error now explains the rigorous procedure step by step,
   with a refit command tailored to the plotted term.
+* Package website: flatly theme, hex logo, and a new article, *The
+  mathematics behind effectzones*, with step-by-step interactive
+  calculators for every calculation the package performs.

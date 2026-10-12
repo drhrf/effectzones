@@ -1,0 +1,664 @@
+---
+title: "The mathematics behind effectzones"
+description: >
+  Every calculation the package performs, worked through step by step
+  with interactive examples.
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", echo = FALSE)
+library(effectzones)
+
+# --- helpers for the step-by-step calculators -------------------------------
+esc <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  x <- gsub(">", "&gt;", x, fixed = TRUE)
+  gsub("\"", "&quot;", x, fixed = TRUE)
+}
+# TeX, rendered with KaTeX in the browser
+tx <- function(x, display = FALSE) {
+  sprintf('<span class="ez-tex"%s data-tex="%s"><code>%s</code></span>',
+          if (display) ' data-display="1"' else "", esc(x), esc(x))
+}
+# numbers: n(x) for display, digits significant
+n <- function(x, digits = 4) {
+  out <- formatC(signif(x, digits), format = "fg", digits = digits)
+  out <- sub("\\.$", "", trimws(out))
+  sub("^-", "\u2212", out)
+}
+nt <- function(x, digits = 4) sub("\u2212", "-", n(x, digits)) # for TeX
+swatch <- function(col) {
+  sprintf('<span class="ez-swatch" style="background:%s" title="%s"></span><code>%s</code>',
+          col, col, col)
+}
+step <- function(text, math = NULL, note = NULL) {
+  list(text = text, math = math, note = note)
+}
+stepper <- function(id, title, given, steps, code = NULL) {
+  li <- vapply(seq_along(steps), function(i) {
+    s <- steps[[i]]
+    paste0(
+      '<li class="ez-step">',
+      '<div class="ez-text">', s$text, "</div>",
+      if (!is.null(s$math)) paste0('<div class="ez-math">', tx(s$math, TRUE), "</div>"),
+      if (!is.null(s$note)) paste0('<div class="ez-note">', s$note, "</div>"),
+      "</li>"
+    )
+  }, character(1))
+  html <- paste0(
+    '<div class="ez-stepper" id="', id, '">',
+    '<div class="ez-title">', title, "</div>",
+    '<div class="ez-given"><span class="ez-given-label">Given</span> ', given, "</div>",
+    '<ol class="ez-steps">', paste(li, collapse = ""), "</ol>",
+    if (!is.null(code)) paste0('<div class="ez-code"><span class="ez-given-label">In R</span><pre><code>',
+                               esc(code), "</code></pre></div>"),
+    '<div class="ez-controls">',
+    '<button type="button" class="btn btn-sm btn-outline-secondary ez-prev">&larr; Back</button>',
+    '<span class="ez-count" aria-live="polite"></span>',
+    '<button type="button" class="btn btn-sm btn-primary ez-next">Next step &rarr;</button>',
+    '<button type="button" class="btn btn-sm btn-link ez-all">Show all</button>',
+    '<button type="button" class="btn btn-sm btn-link ez-reset">Start over</button>',
+    "</div>",
+    '<div class="ez-progress"><div class="ez-bar"></div></div>',
+    "</div>"
+  )
+  knitr::asis_output(paste0("\n```{=html}\n", html, "\n```\n"))
+}
+```
+
+```{=html}
+<style>
+.ez-stepper { border: 1px solid var(--bs-border-color, #dee2e6); border-radius: .5em;
+  padding: 1em 1.1em .8em; margin: 1.2em 0 1.6em; background: var(--bs-body-bg, #fff); }
+.ez-title { font-weight: 600; font-size: 1.05em; margin-bottom: .5em; }
+.ez-given { font-size: .95em; margin-bottom: .6em; }
+.ez-given-label { display: inline-block; font-size: .72em; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--bs-secondary-color, #6c757d); margin-right: .35em; }
+.ez-steps { padding-left: 1.4em; margin: 0; }
+.ez-step { padding: .45em .6em; margin: .25em 0; border-left: 3px solid transparent;
+  border-radius: .25em; }
+.ez-step.ez-current { border-left-color: var(--bs-primary, #2c3e50);
+  background: var(--bs-tertiary-bg, #f8f9fa); }
+.ez-step.ez-hidden { display: none; }
+.ez-math { overflow-x: auto; overflow-y: hidden; padding: .15em 0; }
+.ez-note { font-size: .88em; color: var(--bs-secondary-color, #6c757d); }
+.ez-code { margin-top: .6em; }
+.ez-code pre { margin: .2em 0 0; }
+.ez-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .4em; margin-top: .7em; }
+.ez-count { font-size: .85em; color: var(--bs-secondary-color, #6c757d); min-width: 7.5em; text-align: center; }
+.ez-progress { height: 3px; background: var(--bs-border-color, #dee2e6); border-radius: 2px; margin-top: .5em; }
+.ez-bar { height: 3px; width: 0; background: var(--bs-success, #18bc9c); border-radius: 2px; transition: width .2s; }
+.ez-swatch { display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -0.2em;
+  border: 1px solid var(--bs-border-color, #ccc); border-radius: .15em; margin: 0 .25em 0 .5em; }
+.ez-stepper table { font-size: .9em; margin: .3em 0; }
+.ez-stepper td, .ez-stepper th { padding: .1em .6em; }
+</style>
+<script>
+(function () {
+  function renderTex(root) {
+    var els = root.querySelectorAll(".ez-tex");
+    for (var i = 0; i < els.length; i++) {
+      try {
+        window.katex.render(els[i].getAttribute("data-tex"), els[i], {
+          displayMode: els[i].hasAttribute("data-display"), throwOnError: false
+        });
+      } catch (e) {}
+    }
+  }
+  function withKatex(cb) {
+    if (window.katex) return cb();
+    var css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css";
+    document.head.appendChild(css);
+    var js = document.createElement("script");
+    js.src = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js";
+    js.onload = cb;
+    document.head.appendChild(js);
+  }
+  function setup(box) {
+    var steps = box.querySelectorAll(".ez-step");
+    var n = steps.length, k = 1;
+    var prev = box.querySelector(".ez-prev"), next = box.querySelector(".ez-next");
+    var all = box.querySelector(".ez-all"), reset = box.querySelector(".ez-reset");
+    var count = box.querySelector(".ez-count"), bar = box.querySelector(".ez-bar");
+    var code = box.querySelector(".ez-code");
+    function show() {
+      for (var i = 0; i < n; i++) {
+        steps[i].classList.toggle("ez-hidden", i >= k);
+        steps[i].classList.toggle("ez-current", i === k - 1);
+      }
+      count.textContent = "Step " + k + " of " + n;
+      bar.style.width = (100 * k / n) + "%";
+      prev.disabled = k <= 1;
+      next.disabled = k >= n;
+      next.textContent = k >= n ? "Done" : "Next step \u2192";
+      if (code) code.style.display = k >= n ? "" : "none";
+    }
+    next.addEventListener("click", function () { if (k < n) { k++; show(); } });
+    prev.addEventListener("click", function () { if (k > 1) { k--; show(); } });
+    all.addEventListener("click", function () { k = n; show(); });
+    reset.addEventListener("click", function () { k = 1; show(); });
+    show();
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    var boxes = document.querySelectorAll(".ez-stepper");
+    for (var i = 0; i < boxes.length; i++) setup(boxes[i]);
+    withKatex(function () { renderTex(document); });
+  });
+})();
+</script>
+```
+
+effectzones draws backgrounds; it never tests or classifies an estimate.
+But drawing a background still involves arithmetic: converting
+standardised thresholds to the scale of the data, choosing the right
+standard deviation, translating effect sizes into odds ratios, placing soft
+boundaries and fitting them into a panel. This article works through every
+one of those calculations.
+
+Each **calculator** below starts from a concrete example. Press **Next
+step** to reveal one step at a time, **Back** to go back, or **Show all**.
+The numbers are computed by R with effectzones itself when this page is
+built, so they are exactly what the package uses.
+
+## 1. The pooled within-group SD
+
+Most effect-size benchmarks are standardised: a "medium" d of 0.5 means a
+difference of half a standard deviation. To draw it behind contrasts in the
+outcome's own units we need that SD. In a one-way ANOVA with $k$ groups the
+residual standard deviation is the pooled within-group SD,
+
+$$
+s_p = \sqrt{\mathrm{MSE}}
+    = \sqrt{\frac{\sum_{i=1}^{k} (n_i - 1)\, s_i^2}{N - k}},
+$$
+
+the usual denominator of Cohen's $d$. It is the same quantity the ANOVA
+$F$ test and the Tukey intervals rely on, under the same equal-variance
+assumption, so `plot_contrasts()` takes it from a one-way model
+automatically.
+
+```{r pooled}
+fit <- aov(weight ~ group, data = PlantGrowth)
+g <- split(PlantGrowth$weight, PlantGrowth$group)
+ni <- vapply(g, length, numeric(1))
+si <- vapply(g, sd, numeric(1))
+ss <- sum((ni - 1) * si^2)
+N <- sum(ni); k <- length(ni); df <- N - k
+mse <- ss / df
+sp <- sqrt(mse)
+stopifnot(isTRUE(all.equal(sp, pooled_sd(fit))))
+tab <- paste0(
+  "<table><tr><th>group</th><th>", tx("n_i"), "</th><th>", tx("s_i"), "</th></tr>",
+  paste0("<tr><td>", names(ni), "</td><td>", ni, "</td><td>", n(si), "</td></tr>", collapse = ""),
+  "</table>"
+)
+stepper("sd-pooled", "Pooled SD of the PlantGrowth one-way ANOVA",
+  given = paste("plant dry weight in three groups (", tx("k = 3"), ")."),
+  steps = list(
+    step(paste("Start from the size and SD of each group:", tab)),
+    step("Weight each group's variance by its degrees of freedom and add them up: the within-group sum of squares.",
+         sprintf("\\textstyle\\sum (n_i - 1)s_i^2 = %s", paste(sprintf("%d \\times %s^2", ni - 1, nt(si)), collapse = " + ")),
+         note = paste("= ", n(ss, 5))),
+    step("Divide by the residual degrees of freedom to get the mean squared error.",
+         sprintf("\\mathrm{MSE} = \\frac{%s}{N - k} = \\frac{%s}{%d - %d} = %s", nt(ss, 5), nt(ss, 5), N, k, nt(mse, 5))),
+    step("Take the square root: this is the pooled within-group SD.",
+         sprintf("s_p = \\sqrt{%s} = %s", nt(mse, 5), nt(sp, 4)),
+         note = "It equals the residual SD of the fitted model, sigma(fit).")
+  ),
+  code = "fit <- aov(weight ~ group, data = PlantGrowth)\npooled_sd(fit)"
+)
+```
+
+## 2. From standardised thresholds to boundaries on the data scale
+
+A standardised cut-point $c$ becomes a pair of boundaries around the null,
+$\text{null} \pm c \cdot \mathrm{SD}$. Effect sizes on the correlation,
+$\eta^2$ or $f$ scale are drawn on their own scale only; there is no
+conversion from them to raw differences.
+
+```{r d-to-raw}
+cuts <- es_benchmarks("cohen_d")$cuts
+raw <- to_plot_scale(es_benchmarks("cohen_d"), sd = sp)$cuts
+stopifnot(isTRUE(all.equal(raw, cuts * sp)))
+stepper("d-to-raw", "Cohen's d benchmarks behind the PlantGrowth contrasts",
+  given = paste("cut-points", tx("d = 0.2,\\ 0.5,\\ 0.8"), "(Cohen 1988) and", tx(sprintf("s_p = %s", nt(sp))), "from calculator 1."),
+  steps = list(
+    step("Multiply each cut-point by the SD.",
+         sprintf("%s", paste(sprintf("%s \\times %s = %s", cuts, nt(sp), nt(raw)), collapse = ",\\quad "))),
+    step("Place a boundary on each side of the null (0 for a difference).",
+         sprintf("\\pm %s,\\quad \\pm %s,\\quad \\pm %s", nt(raw[1]), nt(raw[2]), nt(raw[3]))),
+    step(paste("Read off the zones (in kg of dry weight). A contrast whose interval lies between",
+               n(-raw[1]), "and", n(raw[1]), "kg sits in the <em>negligible</em> zone; beyond",
+               n(raw[3]), "kg in either direction it reaches the <em>large</em> zone."),
+         sprintf("\\underbrace{|x| < %s}_{\\text{negligible}}\\;\\;\\underbrace{%s \\le |x| < %s}_{\\text{small}}\\;\\;\\underbrace{%s \\le |x| < %s}_{\\text{medium}}\\;\\;\\underbrace{|x| \\ge %s}_{\\text{large}}",
+                 nt(raw[1]), nt(raw[1]), nt(raw[2]), nt(raw[2]), nt(raw[3]), nt(raw[3])))
+  ),
+  code = "to_plot_scale(es_benchmarks(\"cohen_d\"), sd = pooled_sd(fit))"
+)
+```
+
+## 3. Which SD when the model has several terms
+
+With more than one term the residual SD has the variance of *every other
+term* removed. That is right for factors the experimenter manipulated
+(their variation does not exist in the population) and too small for
+factors that were only measured (sex, age, site, baseline covariates),
+which are ordinary differences between people. The generalized
+standardizer (Olejnik & Algina 2003) keeps measured variation in the SD:
+refit the model with **only the manipulated factors** and use its residual
+SD. Whether a factor was manipulated or measured is a fact about the
+design, not the data, which is why `plot_contrasts()` asks instead of
+guessing.
+
+```{r co2}
+co2 <- subset(CO2, conc == 1000)
+fit_full <- aov(uptake ~ Treatment + Type, data = co2)
+fit_manip <- update(fit_full, . ~ Treatment)
+s_full <- pooled_sd(fit_full)
+s_manip <- pooled_sd(fit_manip)
+df_full <- fit_full$df.residual
+df_manip <- fit_manip$df.residual
+stepper("sd-generalized", "Chilling (manipulated) and plant origin (measured) in the CO2 data",
+  given = paste("CO\u2082 uptake of 12 plants at the highest concentration;",
+                "<code>Treatment</code> (chilled or not) was assigned, <code>Type</code> (Quebec or Mississippi) is the plants' origin."),
+  steps = list(
+    step("Fit the model with both terms. Its residual SD has the large difference between origins removed.",
+         sprintf("s_{\\text{residual}} = \\sqrt{\\mathrm{MSE}_{\\text{Treatment + Type}}} = %s \\quad (%d\\ \\text{df})", nt(s_full), df_full)),
+    step("Refit with the manipulated factor only. Origin is ordinary variation between plants, so it goes back into the error term.",
+         sprintf("s_{\\text{gen}} = \\sqrt{\\mathrm{MSE}_{\\text{Treatment}}} = %s \\quad (%d\\ \\text{df})", nt(s_manip), df_manip)),
+    step("Compare. Using the residual SD would shrink every zone by this factor.",
+         sprintf("\\frac{s_{\\text{gen}}}{s_{\\text{residual}}} = \\frac{%s}{%s} = %s", nt(s_manip), nt(s_full), nt(s_manip / s_full, 3))),
+    step("Translate a \"medium\" d = 0.5 into each scale.",
+         sprintf("0.5 \\times %s = %s \\ \\mu\\text{mol/m}^2\\text{s} \\quad\\text{vs.}\\quad 0.5 \\times %s = %s", nt(s_full), nt(0.5 * s_full), nt(s_manip), nt(0.5 * s_manip)),
+         note = "Only the second matches what \"half a standard deviation between plants\" means.")
+  ),
+  code = paste0(
+    "fit <- aov(uptake ~ Treatment + Type, data = subset(CO2, conc == 1000))\n",
+    "plot_contrasts(fit, which = \"Treatment\",\n",
+    "  zones = geom_es_zones(es_benchmarks(\"cohen_d\"),\n",
+    "                        sd = pooled_sd(update(fit, . ~ Treatment))))"
+  )
+)
+```
+
+The same logic applies to a randomised ANCOVA. Adjusting for a baseline
+covariate with pooled within-group correlation $r$ removes a fraction $r^2$
+of the outcome variance, so the adjusted residual SD relates to the
+unadjusted within-group SD approximately as
+
+$$
+s_{\text{adj}} \approx s_{\text{unadj}} \sqrt{1 - r^2}
+\quad\Longrightarrow\quad
+s_{\text{unadj}} \approx \frac{s_{\text{adj}}}{\sqrt{1 - r^2}},
+$$
+
+(ignoring the one degree of freedom spent on the slope). The standardizer
+for $d$ is $s_{\text{unadj}}$: the covariate improves precision, but people
+still differ by that much.
+
+## 4. The SD is an estimate too
+
+The SD used to place the boundaries has sampling error. Under normality,
+$(\nu\, s^2)/\sigma^2 \sim \chi^2_\nu$ with $\nu$ residual degrees of
+freedom, which gives a confidence interval for $\sigma$:
+
+$$
+\left[\, s\sqrt{\frac{\nu}{\chi^2_{\nu,\,1-\alpha/2}}},\;
+        s\sqrt{\frac{\nu}{\chi^2_{\nu,\,\alpha/2}}} \,\right].
+$$
+
+Each boundary $d \cdot s$ inherits that interval. effectzones does not yet
+draw this uncertainty, so report it alongside the plot.
+
+```{r sd-ci}
+lo_q <- qchisq(0.975, df); hi_q <- qchisq(0.025, df)
+s_lo <- sp * sqrt(df / lo_q); s_hi <- sp * sqrt(df / hi_q)
+stepper("sd-ci", "95% confidence interval for the PlantGrowth SD",
+  given = paste(tx(sprintf("s_p = %s", nt(sp))), "with", tx(sprintf("\\nu = %d", df)), "residual degrees of freedom (calculator 1)."),
+  steps = list(
+    step("Look up the chi-square quantiles that cut off 2.5% in each tail.",
+         sprintf("\\chi^2_{%d,\\,0.975} = %s, \\qquad \\chi^2_{%d,\\,0.025} = %s", df, nt(lo_q), df, nt(hi_q))),
+    step("Lower limit: divide by the larger quantile.",
+         sprintf("%s \\sqrt{\\tfrac{%d}{%s}} = %s", nt(sp), df, nt(lo_q), nt(s_lo))),
+    step("Upper limit: divide by the smaller quantile.",
+         sprintf("%s \\sqrt{\\tfrac{%d}{%s}} = %s", nt(sp), df, nt(hi_q), nt(s_hi))),
+    step("Carry it to a boundary. The \"medium\" boundary 0.5 SD could plausibly lie anywhere in",
+         sprintf("0.5 \\times [%s,\\ %s] = [%s,\\ %s]\\ \\text{kg}", nt(s_lo), nt(s_hi), nt(0.5 * s_lo), nt(0.5 * s_hi)),
+         note = sprintf("A point boundary at %s kg hides that spread.", n(0.5 * sp)))
+  ),
+  code = paste0(
+    "s <- pooled_sd(fit); nu <- fit$df.residual\n",
+    "s * sqrt(nu / qchisq(c(0.975, 0.025), nu))"
+  )
+)
+```
+
+## 5. Soft boundaries
+
+Benchmarks are conventions, not natural discontinuities, so by default
+`geom_es_zones()` fades from one zone into the next. For a boundary at
+distance $c$ from the null, with `softness` $= \lambda$ (default 0.1), the
+transition spans
+
+$$
+\left[\, c - \tfrac{\lambda c}{2},\; c + \tfrac{\lambda c}{2} \,\right],
+$$
+
+drawn as $n$ thin rectangles (`n_slices`, default 40). Slice $j$ is
+coloured at the fraction $t_j = (j - \tfrac12)/n$ of the way between the
+two zone colours, interpolated in the perceptually uniform CIELAB space. If
+two neighbouring transitions would overlap they are both cut back to the
+midpoint between their boundaries. For ratio zones the same arithmetic is
+done on the log scale.
+
+```{r soft}
+spec <- effectzones:::es_zone_spec(
+  to_plot_scale(es_benchmarks("cohen_d"), sd = sp), null = 0,
+  softness = 0.1, palette = "grey"
+)
+b <- spec$boundaries[spec$boundaries$at > 0, ][2, ] # the "medium" boundary
+z_from <- spec$zones$colour[spec$zones$label == "small"][1]
+z_to <- spec$zones$colour[spec$zones$label == "medium"][1]
+nsl <- 40
+tj <- (c(1, 20, 40) - 0.5) / nsl
+cols <- scales::colour_ramp(c(z_from, z_to))(tj)
+seg <- effectzones:::zone_segments(spec, n_slices = nsl)
+stopifnot(all(cols %in% seg$fill))
+stepper("soft", "The soft boundary between \"small\" and \"medium\" (PlantGrowth, d = 0.5)",
+  given = paste(tx(sprintf("c = 0.5 \\times %s = %s", nt(sp), nt(b$at))), "kg,", tx("\\lambda = 0.1"), ",", tx("n = 40"), "slices, grey palette."),
+  steps = list(
+    step("Width of the transition: a tenth of the threshold.",
+         sprintf("\\lambda c = 0.1 \\times %s = %s", nt(b$at), nt(0.1 * b$at))),
+    step("Centre it on the threshold.",
+         sprintf("[\\,%s - %s,\\; %s + %s\\,] = [\\,%s,\\; %s\\,]", nt(b$at), nt(0.05 * b$at), nt(b$at), nt(0.05 * b$at), nt(b$lo), nt(b$hi))),
+    step("Cut it into 40 slices and give each one a mixing fraction, e.g. slices 1, 20 and 40:",
+         sprintf("t_1 = \\tfrac{0.5}{40} = %s,\\quad t_{20} = \\tfrac{19.5}{40} = %s,\\quad t_{40} = \\tfrac{39.5}{40} = %s", nt(tj[1]), nt(tj[2]), nt(tj[3]))),
+    step(paste0("Mix the two zone colours (", swatch(z_from), " small, ", swatch(z_to),
+                " medium) at those fractions in CIELAB:", "<br>",
+                "slice 1", swatch(cols[1]), " &nbsp; slice 20", swatch(cols[2]), " &nbsp; slice 40", swatch(cols[3])),
+         note = "Each slice is then drawn with the layer's alpha (0.35 by default), so the gridlines and estimates stay visible.")
+  ),
+  code = "geom_es_zones(es_benchmarks(\"cohen_d\"), sd = pooled_sd(fit),\n              softness = 0.1, n_slices = 40)"
+)
+```
+
+## 6. Ratios: zones on the log scale
+
+Odds ratios and risk ratios are multiplicative, so their zones are placed
+around $1$ on the log scale. A magnitude $c$ gives boundaries $1/c$ and $c$
+(symmetric in $\log$), unless the thresholds specify a different magnitude
+below the null (`cuts_lower`). On a `scale_x_log10()` axis, ggplot2 works
+in $\log_{10}$ units, and the boundaries are transformed the same way as the
+data.
+
+```{r ratio}
+c1 <- 1.68
+stepper("ratio", "Placing the first Chen et al. odds-ratio boundary on a log axis",
+  given = paste(tx("c = 1.68"), "(the \"small\" odds ratio at a 1% baseline risk), null", tx("= 1"), ", axis", tx("\\log_{10}"), "."),
+  steps = list(
+    step("Above the null: multiply.", sprintf("1 \\times %s = %s", c1, c1)),
+    step("Below the null (symmetric case): divide.", sprintf("1 / %s = %s", c1, nt(1 / c1))),
+    step("On the log scale the two are mirror images of each other.",
+         sprintf("\\log(%s) = %s, \\qquad \\log(%s) = %s", c1, nt(log(c1)), nt(1 / c1), nt(log(1 / c1)))),
+    step("ggplot2 places them at their log10 positions, exactly like the data.",
+         sprintf("\\log_{10}(%s) = %s, \\qquad \\log_{10}(%s) = %s", nt(1 / c1), nt(log10(1 / c1)), c1, nt(log10(c1))),
+         note = "Section 8 shows why, under Chen et al.'s own model, the lower boundary is not exactly 1/c.")
+  ),
+  code = "geom_es_zones(es_thresholds(c(1.68, 3.47, 6.71), c(\"negligible\", \"small\", \"medium\", \"large\"),\n                            metric = \"or\"), scale = \"log\", null = 1) +\n  scale_x_log10()"
+)
+```
+
+## 7. From d to an odds ratio: Chinn's approximation
+
+If a binary outcome arises from dichotomising a latent variable with a
+logistic distribution, a shift of $d$ standard deviations corresponds to
+
+$$
+\log(\mathrm{OR}) = d \cdot \frac{\pi}{\sqrt{3}} \approx 1.814\, d
+$$
+
+(Chinn 2000). This is what `to_plot_scale(…, scale = "log")` uses for $d$
+thresholds. It does not depend on the baseline risk, which is exactly
+where it differs from Chen et al.
+
+```{r chinn}
+dd <- 0.5
+lor <- dd * pi / sqrt(3)
+stopifnot(isTRUE(all.equal(exp(lor), to_plot_scale(es_benchmarks("cohen_d"), scale = "log")$cuts[2])))
+stepper("chinn", "A \"medium\" d = 0.5 as an odds ratio (Chinn 2000)",
+  given = tx("d = 0.5"),
+  steps = list(
+    step("The scale factor of the logistic distribution.", sprintf("\\pi/\\sqrt{3} = %s", nt(pi / sqrt(3), 5))),
+    step("Multiply.", sprintf("\\log(\\mathrm{OR}) = 0.5 \\times %s = %s", nt(pi / sqrt(3), 5), nt(lor, 5))),
+    step("Exponentiate.", sprintf("\\mathrm{OR} = e^{%s} = %s", nt(lor, 5), nt(exp(lor))),
+         note = "Compare Chen et al. at a 1% baseline: 3.47 (next section).")
+  ),
+  code = "to_plot_scale(es_benchmarks(\"cohen_d\"), scale = \"log\")$cuts"
+)
+```
+
+## 8. From d to an odds ratio at a given baseline risk: Chen et al.
+
+Chen, Cohen & Chen (2010) place both groups on a latent normal scale. With
+event risk $p_0$ in the reference group, a shift $d$ gives the exposed
+group's risk and the odds ratio
+
+$$
+p_1 = \Phi\!\left(\Phi^{-1}(p_0) + d\right), \qquad
+\mathrm{OR} = \frac{p_1/(1-p_1)}{p_0/(1-p_0)} .
+$$
+
+This reproduces their published values (1.68, 3.47 and 6.71 at $p_0 = 1\%$;
+1.52, 2.74 and 4.72 at $5\%$). Applied to a protective shift $-d$ it does
+**not** give $1/\mathrm{OR}$, except at $p_0 = 0.5$, so effectzones
+computes the boundaries below 1 from $-d$ directly.
+
+```{r chen}
+p0 <- 0.01; d8 <- 0.8
+z0 <- qnorm(p0); z1 <- z0 + d8; p1 <- pnorm(z1)
+or_up <- (p1 / (1 - p1)) / (p0 / (1 - p0))
+z1m <- z0 - d8; p1m <- pnorm(z1m)
+or_dn <- (p1m / (1 - p1m)) / (p0 / (1 - p0))
+thr <- chen_or_thresholds(p0)
+stopifnot(isTRUE(all.equal(or_up, thr$cuts[3])), isTRUE(all.equal(1 / or_dn, thr$cuts_lower[3])))
+stepper("chen", "The \"large\" boundaries (d = \u00b10.8) at a 1% baseline risk",
+  given = paste(tx("p_0 = 0.01"), "in the reference group,", tx("d = 0.8"), "."),
+  steps = list(
+    step("Move the baseline risk to the latent normal scale.",
+         sprintf("z_0 = \\Phi^{-1}(0.01) = %s", nt(z0, 5))),
+    step("Harmful direction: shift by +d and return to a risk.",
+         sprintf("p_1 = \\Phi(%s + 0.8) = \\Phi(%s) = %s", nt(z0, 5), nt(z1, 5), nt(p1, 4))),
+    step("Odds ratio for the harmful direction (the published value, 6.71).",
+         sprintf("\\mathrm{OR} = \\frac{%s/(1-%s)}{0.01/0.99} = %s", nt(p1, 4), nt(p1, 4), nt(or_up, 4))),
+    step("Protective direction: shift by \u2212d instead.",
+         sprintf("p_1 = \\Phi(%s - 0.8) = \\Phi(%s) = %s", nt(z0, 5), nt(z1m, 5), nt(p1m, 4))),
+    step("Odds ratio for the protective direction.",
+         sprintf("\\mathrm{OR} = \\frac{%s/(1-%s)}{0.01/0.99} = %s = 1/%s", nt(p1m, 4), nt(p1m, 4), nt(or_dn, 4), nt(1 / or_dn, 4)),
+         note = sprintf("Mirroring would have put this boundary at 1/%s = %s, so the protective \"large\" zone would start too close to 1.", n(or_up), n(1 / or_up)))
+  ),
+  code = "chen_or_thresholds(0.01)   # any baseline risk: chen_or_thresholds(0.2)"
+)
+```
+
+## 9. Distribution-based (provisional) MCIDs
+
+A distribution-based MCID describes the spread or the measurement error of
+a score, not what patients consider worthwhile, so effectzones marks it
+provisional. Two rules are offered:
+
+$$
+\text{half SD} = 0.5\, s, \qquad
+\text{SEM} = s\sqrt{1 - r_{xx}},
+$$
+
+where $r_{xx}$ is the instrument's reliability (Norman, Sloan & Wyrwich
+2003; Wyrwich, Tierney & Wolinsky 1999). Half an SD is exactly Cohen's
+"medium" $d = 0.5$, which is why a distribution-based MCID adds no clinical
+information beyond the effect-size zones.
+
+```{r mcid-dist}
+sem <- mcid_distribution(sd = 10, method = "sem", reliability = 0.84)
+half <- mcid_distribution(sd = 10)
+stepper("mcid-dist", "Half-SD and SEM for a score with SD 10 and reliability 0.84",
+  given = paste(tx("s = 10"), ",", tx("r_{xx} = 0.84"), "."),
+  steps = list(
+    step("Half an SD.", sprintf("0.5 \\times 10 = %s", nt(half$upper))),
+    step("The unreliable fraction of the variance.", "1 - 0.84 = 0.16"),
+    step("One standard error of measurement.", sprintf("10 \\times \\sqrt{0.16} = 10 \\times 0.4 = %s", nt(sem$upper))),
+    step("Either value becomes a symmetric, provisional MCID.",
+         sprintf("\\text{harm} < %s \\le \\text{trivial} \\le %s < \\text{benefit}", nt(-sem$upper), nt(sem$upper)),
+         note = "The legend then reads \"MCID (provisional, distribution-based)\".")
+  ),
+  code = "mcid_distribution(sd = 10, method = \"sem\", reliability = 0.84)"
+)
+```
+
+## 10. MCID zones: asymmetry, direction, ranges and multiples
+
+An MCID defines a trivial zone $[\ell, u]$ around the null, with $\ell < 0 < u$
+allowed to differ in size. Which side is benefit depends on `direction`. A
+range for either threshold (an uncertain MCID) is drawn as a fade across
+the range, using the same slicing as section 5. With
+`beyond = "multiples"`, extra boundaries at $2\ell, 3\ell$ and $2u, 3u$
+deepen the colour; this requires point thresholds, because multiples of an
+uncertain MCID would be uncertain too.
+
+```{r mcid-zones}
+m_pt <- mcid_thresholds(lower = -0.25, upper = 0.3)
+spec_m <- effectzones:::mcid_zone_spec(m_pt, null = 0, softness = NULL,
+                                       beyond = "multiples", palette = "diverging")
+brk <- effectzones:::zone_breaks(spec_m)
+m_rg <- mcid_thresholds(lower = -0.25, upper = c(0.3, 0.5))
+stepper("mcid-zones", "Zones for an asymmetric MCID (\u22120.25 / +0.3, higher is better)",
+  given = paste(tx("\\ell = -0.25"), ",", tx("u = 0.3"), ", <code>direction = \"higher_better\"</code>."),
+  steps = list(
+    step("Three zones, with hard edges at the thresholds.",
+         "\\underbrace{x < -0.25}_{\\text{harm}} \\quad \\underbrace{-0.25 \\le x \\le 0.3}_{\\text{trivial}} \\quad \\underbrace{x > 0.3}_{\\text{benefit}}"),
+    step("If lower values were better (<code>direction = \"lower_better\"</code>), the same boundaries would label the sides the other way round.",
+         "\\underbrace{x < -0.25}_{\\text{benefit}} \\quad \\underbrace{-0.25 \\le x \\le 0.3}_{\\text{trivial}} \\quad \\underbrace{x > 0.3}_{\\text{harm}}"),
+    step("With <code>beyond = \"multiples\"</code>, add boundaries at 2 and 3 times each threshold.",
+         sprintf("%s", paste(nt(brk), collapse = ",\\ "))),
+    step("If the improvement threshold were uncertain, say between 0.3 and 0.5, the trivial zone fades into benefit across that range instead of switching at one point.",
+         "0.3 \\le x \\le 0.5:\\ \\text{trivial} \\rightarrow \\text{benefit}",
+         note = "Multiples are then refused: \"2\u00d7\" could be anywhere from 0.6 to 1.0.")
+  ),
+  code = "geom_mcid_zones(mcid_thresholds(lower = -0.25, upper = 0.3), beyond = \"multiples\")\ngeom_mcid_zones(mcid_thresholds(lower = -0.25, upper = c(0.3, 0.5)))"
+)
+```
+
+## 11. Where the intervals come from: Tukey's HSD
+
+effectzones does not compute intervals; `plot_contrasts()` draws the ones
+your analysis produced. For Tukey post-hoc comparisons (computed by
+`stats::TukeyHSD()`), the family-wise interval for groups $i$ and $j$ is
+
+$$
+(\bar y_i - \bar y_j) \pm
+\frac{q_{1-\alpha;\,k,\,\nu}}{\sqrt 2}
+\sqrt{\mathrm{MSE}\left(\frac{1}{n_i} + \frac{1}{n_j}\right)},
+$$
+
+where $q$ is a quantile of the studentized range distribution.
+
+```{r tukey}
+tk <- TukeyHSD(fit)$group
+mi <- vapply(g, mean, numeric(1))
+dif <- mi["trt2"] - mi["trt1"]
+q <- qtukey(0.95, k, df)
+half_w <- q / sqrt(2) * sqrt(mse * (1 / ni["trt2"] + 1 / ni["trt1"]))
+stopifnot(isTRUE(all.equal(unname(dif - half_w), unname(tk["trt2-trt1", "lwr"]))))
+stepper("tukey", "The trt2 \u2212 trt1 interval in PlantGrowth",
+  given = paste(tx(sprintf("\\bar y_{\\text{trt2}} = %s,\\ \\bar y_{\\text{trt1}} = %s", nt(mi["trt2"]), nt(mi["trt1"]))), ",",
+                tx("n = 10"), "per group,", tx(sprintf("\\mathrm{MSE} = %s", nt(mse))), ",", tx(sprintf("k = 3,\\ \\nu = %d", df)), "."),
+  steps = list(
+    step("Difference in means.", sprintf("%s - %s = %s", nt(mi["trt2"]), nt(mi["trt1"]), nt(dif))),
+    step("Studentized range quantile for 95% family-wise coverage.", sprintf("q_{0.95;\\,3,\\,%d} = %s", df, nt(q))),
+    step("Half-width of the interval.",
+         sprintf("\\frac{%s}{\\sqrt 2}\\sqrt{%s\\left(\\tfrac{1}{10} + \\tfrac{1}{10}\\right)} = %s", nt(q), nt(mse), nt(half_w))),
+    step("The interval drawn by <code>plot_contrasts()</code>, identical to <code>TukeyHSD()</code>.",
+         sprintf("%s \\pm %s = [\\,%s,\\ %s\\,]", nt(dif), nt(half_w), nt(dif - half_w), nt(dif + half_w)),
+         note = sprintf("Against the d zones of calculator 2 (boundaries at \u00b1%s, \u00b1%s, \u00b1%s kg), this interval runs from the small zone into the large zone.", n(raw[1]), n(raw[2]), n(raw[3])))
+  ),
+  code = "plot_contrasts(fit, zones = geom_es_zones(es_benchmarks(\"cohen_d\")))"
+)
+```
+
+## 12. Fitting zones into the panel
+
+Zone boundaries are layer parameters, not data, so by default they never
+change the axis limits. The layer works out what is visible in three steps:
+transform the boundaries like the data, keep the zones that reach the
+visible range, and clip them to the panel. The visible range is the data
+range expanded by ggplot2's default 5% on each side. (Zooming with
+`coord_cartesian()` is applied only at drawing time, so the legend can
+still list a zone that the zoom cuts away.)
+
+```{r panel}
+est <- c(tk[, "lwr"], tk[, "upr"])
+rng <- range(est)
+vis <- rng + c(-1, 1) * 0.05 * diff(rng)
+zl <- c(-Inf, -raw[3], -raw[2], -raw[1], raw[1], raw[2], raw[3])
+zh <- c(-raw[3], -raw[2], -raw[1], raw[1], raw[2], raw[3], Inf)
+lab <- c("large", "medium", "small", "negligible", "small", "medium", "large")
+keep <- zh > vis[1] & zl < vis[2]
+raw3 <- es_benchmarks("cohen_d")$cuts * 3
+zl3 <- c(-Inf, -raw3[3], -raw3[2], -raw3[1], raw3[1], raw3[2], raw3[3])
+zh3 <- c(-raw3[3], -raw3[2], -raw3[1], raw3[1], raw3[2], raw3[3], Inf)
+keep3 <- zh3 > vis[1] & zl3 < vis[2]
+# the same rule as the package: check against the legend of the built plot
+p3 <- plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d"), sd = 3, softness = 0))
+lim3 <- ggplot2::ggplot_build(p3)$plot$scales$get_scales("es_zone")$get_limits()
+stopifnot(identical(lim3, intersect(c("negligible", "small", "medium", "large"), lab[keep3])))
+stepper("panel", "Which Cohen's d zones appear in the PlantGrowth Tukey plot",
+  given = "the three Tukey intervals and the boundaries from calculator 2.",
+  steps = list(
+    step("The data span the lowest and highest interval limits.",
+         sprintf("[\\,%s,\\ %s\\,]", nt(rng[1]), nt(rng[2]))),
+    step("Expand by 5% of the width on each side to get the visible range.",
+         sprintf("[\\,%s - %s,\\ %s + %s\\,] = [\\,%s,\\ %s\\,]", nt(rng[1]), nt(0.05 * diff(rng)), nt(rng[2]), nt(0.05 * diff(rng)), nt(vis[1]), nt(vis[2]))),
+    step("Keep a zone if it overlaps the visible range: its upper end is above the left edge and its lower end below the right edge.",
+         "\\text{keep} \\iff \\text{hi} > \\text{left} \\ \\text{and}\\ \\text{lo} < \\text{right}"),
+    step(paste0("Result: ", paste(sprintf("%s %s", ifelse(keep, "\u2714", "\u2718"), lab), collapse = ", "),
+                ". Every zone reaches the visible range, so all four labels appear in the legend; the outermost ones are clipped at the panel edges.")),
+    step(paste0("Now suppose the benchmark's SD were 3 kg. The boundaries move to ",
+                paste0("±", vapply(raw3, n, ""), collapse = ", "), " kg. ",
+                "Result: ", paste(sprintf("%s %s", ifelse(keep3, "✔", "✘"), lab), collapse = ", "),
+                ". The <em>large</em> zones begin beyond the visible range on both sides, so <em>large</em> is left out of the legend."))
+  ),
+  code = "plot_contrasts(fit, zones = geom_es_zones(es_benchmarks(\"cohen_d\"))) # expand = FALSE\nplot_contrasts(fit, zones = geom_es_zones(es_benchmarks(\"cohen_d\"), expand = TRUE))"
+)
+```
+
+With `expand = TRUE` the finite boundaries are added to the scale's range
+instead, so every cut-point is visible and every zone is listed.
+
+## References
+
+Chen H, Cohen P, Chen S (2010). How big is a big odds ratio? Interpreting
+the magnitudes of odds ratios in epidemiological studies. *Communications
+in Statistics - Simulation and Computation* 39(4):860-864.
+doi:10.1080/03610911003650383
+
+Chinn S (2000). A simple method for converting an odds ratio to effect size
+for use in meta-analysis. *Statistics in Medicine* 19(22):3127-3131.
+[doi:10.1002/1097-0258(20001130)19:22\<3127::AID-SIM784\>3.0.CO;2-M](<https://doi.org/10.1002/1097-0258(20001130)19:22%3C3127::AID-SIM784%3E3.0.CO;2-M>)
+
+Cohen J (1988). *Statistical Power Analysis for the Behavioral Sciences*,
+2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587
+
+Norman GR, Sloan JA, Wyrwich KW (2003). Interpretation of changes in
+health-related quality of life: the remarkable universality of half a
+standard deviation. *Medical Care* 41(5):582-592.
+doi:10.1097/01.mlr.0000062554.74615.4c
+
+Olejnik S, Algina J (2003). Generalized eta and omega squared statistics:
+measures of effect size for some common research designs. *Psychological
+Methods* 8(4):434-447. doi:10.1037/1082-989X.8.4.434
+
+Wyrwich KW, Tierney WM, Wolinsky FD (1999). Further evidence supporting an
+SEM-based criterion for identifying meaningful intra-individual changes in
+health-related quality of life. *Journal of Clinical Epidemiology*
+52(9):861-873. doi:10.1016/s0895-4356(99)00071-2

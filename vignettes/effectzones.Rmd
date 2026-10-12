@@ -404,7 +404,7 @@ the magnitudes of odds ratios in epidemiological studies. *Communications
 in Statistics - Simulation and Computation* 39(4):860-864. doi:10.1080/03610911003650383
 
 Chinn S (2000). A simple method for converting an odds ratio to effect size
-for use in meta-analysis. *Statistics in Medicine* 19(22):3127-3131. doi:10.1002/1097-0258(20001130)19:22<3127::AID-SIM784>3.0.CO;2-M
+for use in meta-analysis. *Statistics in Medicine* 19(22):3127-3131. [doi:10.1002/1097-0258(20001130)19:22\<3127::AID-SIM784\>3.0.CO;2-M](<https://doi.org/10.1002/1097-0258(20001130)19:22%3C3127::AID-SIM784%3E3.0.CO;2-M>)
 
 Cohen J (1988). *Statistical Power Analysis for the Behavioral Sciences*,
 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587

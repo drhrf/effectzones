@@ -1,13 +1,14 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# effectzones
+# effectzones <img src="man/figures/logo.png" align="right" height="139" alt="effectzones hex logo" />
 
 <!-- badges: start -->
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/drhrf/effectzones/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/drhrf/effectzones/actions/workflows/check-standard.yaml)
+[![pkgdown](https://github.com/drhrf/effectzones/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/drhrf/effectzones/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 effectzones is a ggplot2 extension that draws **interpretive background
@@ -114,3 +115,12 @@ does not compute the probability that an effect lies in a zone. That is
 magnitude-based inference, which has been shown to be statistically
 unsound (Welsh & Knight 2015; Sainani 2018). See
 `vignette("effectzones")` and [DESIGN.md](DESIGN.md).
+
+## Documentation
+
+The [package website](https://drhrf.github.io/effectzones/) has the
+reference, the guide *Reading estimates against zones*, and [*The
+mathematics behind
+effectzones*](https://drhrf.github.io/effectzones/articles/articles/mathematics.html),
+which works through every calculation step by step with interactive
+examples.
