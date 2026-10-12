@@ -29,4 +29,6 @@
   with a refit command tailored to the plotted term.
 * Package website: flatly theme, hex logo, and a new article, *The
   mathematics behind effectzones*, with step-by-step interactive
-  calculators for every calculation the package performs.
+  calculators for every calculation the package performs. Each calculator
+  ends with self-contained R code and a "Run code" button that shows the
+  output and plots R produced when the site was built.
