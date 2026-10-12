@@ -1,7 +1,8 @@
 #' Effect-size magnitude zones
 #'
 #' Draws background bands for effect-size magnitude zones ("negligible",
-#' "small", "medium", ...), symmetric around the null, behind estimates and
+#' "small", "medium", ...) around the null (symmetric unless the thresholds
+#' set `cuts_lower`), behind estimates and
 #' confidence intervals. The layer draws a reference background only: it
 #' does not look at, classify or test any estimate.
 #'
@@ -62,17 +63,22 @@
 #' @param label_size,label_colour Size (mm) and colour of zone labels.
 #' @param n_slices Number of thin rectangles used to draw each soft
 #'   transition.
+#' @param zone_labels Optional new names for the zones, for example
+#'   `"below small"` instead of `"negligible"`. Either a character vector
+#'   (or list) with one name per zone, from the null outwards
+#'   (`c("below small", "small", "medium", "large")`), or a named vector
+#'   that renames only some zones (`c(negligible = "below small")`).
 #' @param title Legend title. Defaults to the short source of the thresholds.
 #' @param show.legend Should the zone legend be shown?
 #' @param ... Other arguments passed to [ggplot2::layer()].
 #' @return An object that can be added to a ggplot with `+`.
 #' @references
 #' Cohen J (1988). *Statistical Power Analysis for the Behavioral Sciences*,
-#' 2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+#' 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. \doi{10.4324/9780203771587}
 #'
 #' Chinn S (2000). A simple method for converting an odds ratio to effect
 #' size for use in meta-analysis. *Statistics in Medicine*
-#' 19(22):3127-3131.
+#' 19(22):3127-3131. \doi{10.1002/1097-0258(20001130)19:22<3127::AID-SIM784>3.0.CO;2-M}
 #' @seealso [geom_mcid_zones()], [plot_contrasts()]
 #' @export
 #' @examples
@@ -101,7 +107,8 @@ geom_es_zones <- function(thresholds, sd = NULL, scale = "identity", null = 0,
                           softness = 0.1, palette = "grey", alpha = 0.35,
                           orientation = "x", expand = FALSE, labels = FALSE,
                           label_size = 3, label_colour = "grey20",
-                          n_slices = 40, title = NULL, show.legend = NA, ...) {
+                          n_slices = 40, zone_labels = NULL, title = NULL,
+                          show.legend = NA, ...) {
   if (missing(thresholds) || is.null(thresholds)) {
     cli::cli_abort(c(
       "{.arg thresholds} is required: there is no default benchmark set.",
@@ -136,6 +143,7 @@ geom_es_zones <- function(thresholds, sd = NULL, scale = "identity", null = 0,
       "i" = "For ratios on a log axis use {.code scale = \"log\", null = 1}."
     ))
   }
+  thresholds$labels <- resolve_zone_labels(zone_labels, thresholds$labels)
   # Fail early on impossible conversions.
   to_plot_scale(thresholds, sd = sd, scale = scale)
   es_palette(palette, length(thresholds$labels))

@@ -5,9 +5,10 @@ ratio_metrics <- c("or", "rr")
 #'
 #' Define the cut-points that separate effect-size magnitude zones
 #' ("negligible", "small", "medium", ...). The cut-points are positive
-#' magnitudes and are applied symmetrically around the null: a cut at `0.5`
-#' produces boundaries at `-0.5` and `+0.5` for additive metrics, and at
-#' `1/c` and `c` for ratio metrics (`"or"`, `"rr"`).
+#' magnitudes and, by default, are applied symmetrically around the null: a
+#' cut at `0.5` produces boundaries at `-0.5` and `+0.5` for additive
+#' metrics, and at `1/c` and `c` for ratio metrics (`"or"`, `"rr"`). Use
+#' `cuts_lower` when the two sides differ.
 #'
 #' These objects contain no data and make no claim about any estimate. They
 #' only describe where to draw background boundaries; see
@@ -25,34 +26,28 @@ ratio_metrics <- c("or", "rr")
 #' @param source Optional character string citing where the cuts come from.
 #'   It is shown in the legend title, so keep it short or use the `title`
 #'   argument of [geom_es_zones()].
+#' @param cuts_lower Optional magnitudes for the side below the null when it
+#'   differs from the side above (same length as `cuts`, same labels). A
+#'   value `c` is drawn at `null - c`, or at `null / c` for ratio metrics.
+#'   Defaults to `cuts` (symmetric zones).
 #'
 #' @return An object of class `es_thresholds`: a list with elements `cuts`,
-#'   `labels`, `metric`, `source` and `title` (the short legend title).
+#'   `cuts_lower`, `labels`, `metric`, `source` and `title` (the short legend
+#'   title).
 #' @seealso [es_benchmarks()], [to_plot_scale()], [geom_es_zones()]
 #' @export
 #' @examples
 #' es_thresholds(c(0.1, 0.3), c("trivial", "modest", "substantial"),
 #'               metric = "d", source = "Pre-registered, protocol v2")
 es_thresholds <- function(cuts, labels, metric = c("d", "r", "eta2", "f", "or", "rr", "raw"),
-                          source = NULL) {
+                          source = NULL, cuts_lower = NULL) {
   metric <- rlang::arg_match(metric)
-  if (!is.numeric(cuts) || length(cuts) < 1 || anyNA(cuts) || any(!is.finite(cuts))) {
-    cli::cli_abort("{.arg cuts} must be a non-empty numeric vector of finite values.")
-  }
-  if (any(cuts <= 0)) {
-    cli::cli_abort(c(
-      "{.arg cuts} must be positive magnitudes.",
-      "i" = "Cuts are applied symmetrically around the null, so give only the positive side."
-    ))
-  }
-  if (metric %in% ratio_metrics && any(cuts <= 1)) {
-    cli::cli_abort(c(
-      "For ratio metrics ({.val {metric}}) {.arg cuts} must be greater than 1.",
-      "i" = "A cut {.val c} produces boundaries at {.code 1/c} and {.code c}."
-    ))
-  }
-  if (is.unsorted(cuts, strictly = TRUE)) {
-    cli::cli_abort("{.arg cuts} must be strictly increasing.")
+  check_cuts(cuts, metric)
+  if (!is.null(cuts_lower)) {
+    check_cuts(cuts_lower, metric, arg = "cuts_lower")
+    if (length(cuts_lower) != length(cuts)) {
+      cli::cli_abort("{.arg cuts_lower} must have the same length as {.arg cuts}.")
+    }
   }
   if (!is.character(labels) || anyNA(labels)) {
     cli::cli_abort("{.arg labels} must be a character vector without missing values.")
@@ -70,27 +65,64 @@ es_thresholds <- function(cuts, labels, metric = c("d", "r", "eta2", "f", "or", 
   if (!is.null(source) && (!is.character(source) || length(source) != 1)) {
     cli::cli_abort("{.arg source} must be a single string or {.code NULL}.")
   }
-  new_es_thresholds(cuts, labels, metric, source, title = source)
+  new_es_thresholds(cuts, labels, metric, source, title = source,
+                    cuts_lower = cuts_lower)
+}
+
+check_cuts <- function(cuts, metric, arg = "cuts", call = rlang::caller_env()) {
+  if (!is.numeric(cuts) || length(cuts) < 1 || anyNA(cuts) || any(!is.finite(cuts))) {
+    cli::cli_abort("{.arg {arg}} must be a non-empty numeric vector of finite values.",
+                   call = call)
+  }
+  if (any(cuts <= 0)) {
+    cli::cli_abort(c(
+      "{.arg {arg}} must be positive magnitudes.",
+      "i" = "Give magnitudes only; their side of the null is implied."
+    ), call = call)
+  }
+  if (metric %in% ratio_metrics && any(cuts <= 1)) {
+    cli::cli_abort(c(
+      "For ratio metrics ({.val {metric}}) {.arg {arg}} must be greater than 1.",
+      "i" = "A magnitude {.val c} is drawn at {.code null * c} above and {.code null / c} below the null."
+    ), call = call)
+  }
+  if (is.unsorted(cuts, strictly = TRUE)) {
+    cli::cli_abort("{.arg {arg}} must be strictly increasing.", call = call)
+  }
+  invisible(cuts)
 }
 
 new_es_thresholds <- function(cuts, labels, metric, source, title = NULL,
-                              scale = "identity", note = NULL) {
+                              scale = "identity", note = NULL,
+                              cuts_lower = NULL) {
   structure(
-    list(cuts = as.numeric(cuts), labels = labels, metric = metric,
+    list(cuts = as.numeric(cuts),
+         cuts_lower = as.numeric(cuts_lower %||% cuts),
+         labels = labels, metric = metric,
          source = source, title = title, scale = scale, note = note),
     class = "es_thresholds"
   )
 }
 
+es_is_symmetric <- function(x) isTRUE(all.equal(x$cuts, x$cuts_lower))
+
 #' @export
 print.es_thresholds <- function(x, ...) {
   cli::cli_text("{.cls es_thresholds} on the {.val {x$metric}} scale")
-  bounds <- c(0, x$cuts, Inf)
-  if (x$metric %in% ratio_metrics || identical(x$scale, "log")) bounds[1] <- 1
-  for (i in seq_along(x$labels)) {
-    lo <- fmt_num(bounds[i])
-    hi <- if (is.finite(bounds[i + 1])) fmt_num(bounds[i + 1]) else "Inf"
-    cli::cli_text("{.strong {x$labels[i]}}: |effect| in [{lo}, {hi})")
+  ratio <- x$metric %in% ratio_metrics || identical(x$scale, "log")
+  show <- function(cuts, side) {
+    bounds <- c(if (ratio) 1 else 0, cuts, Inf)
+    for (i in seq_along(x$labels)) {
+      lo <- fmt_num(bounds[i])
+      hi <- if (is.finite(bounds[i + 1])) fmt_num(bounds[i + 1]) else "Inf"
+      cli::cli_text("{.strong {x$labels[i]}}{side}: magnitude in [{lo}, {hi})")
+    }
+  }
+  if (es_is_symmetric(x)) {
+    show(x$cuts, "")
+  } else {
+    show(x$cuts, " (above null)")
+    show(x$cuts_lower, " (below null)")
   }
   if (!is.null(x$source)) cli::cli_text("Source: {x$source}")
   if (!is.null(x$note)) cli::cli_text("Note: {x$note}")
@@ -105,7 +137,8 @@ benchmark_sets <- list(
     title = "Cohen (1988), d",
     source = paste(
       "Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,",
-      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. Cohen offered these values as",
+      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587. Cohen",
+      "offered these values as",
       "conventions for use only when no better basis for judging magnitude is",
       "available."
     )
@@ -118,7 +151,7 @@ benchmark_sets <- list(
     title = "Sawilowsky (2009), d",
     source = paste(
       "Sawilowsky SS (2009). New effect size rules of thumb. Journal of Modern",
-      "Applied Statistical Methods 8(2):597-599."
+      "Applied Statistical Methods 8(2):597-599. doi:10.22237/jmasm/1257035100."
     )
   ),
   cohen_r = list(
@@ -128,7 +161,7 @@ benchmark_sets <- list(
     title = "Cohen (1988), r",
     source = paste(
       "Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,",
-      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum."
+      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587."
     )
   ),
   funder_ozer_r = list(
@@ -163,7 +196,7 @@ benchmark_sets <- list(
     title = "Cohen (1988), \u{03b7}\u{00b2}",
     source = paste(
       "Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,",
-      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum."
+      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587."
     )
   ),
   cohen_f = list(
@@ -173,11 +206,15 @@ benchmark_sets <- list(
     title = "Cohen (1988), f",
     source = paste(
       "Cohen J (1988). Statistical Power Analysis for the Behavioral Sciences,",
-      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum."
+      "2nd ed. Hillsdale, NJ: Lawrence Erlbaum. doi:10.4324/9780203771587."
     )
   ),
   chen_or = list(
     cuts = c(1.68, 3.47, 6.71),
+    # Not published: Chen et al.'s method applied to d = -0.2/-0.5/-0.8 at
+    # 1% baseline risk (see chen_or_thresholds()), rounded like the
+    # published values.
+    cuts_lower = c(1.74, 4.28, 11.40),
     labels = c("negligible", "small", "medium", "large"),
     metric = "or",
     title = "Chen et al. (2010), OR at 1% baseline risk",
@@ -185,9 +222,13 @@ benchmark_sets <- list(
       "Chen H, Cohen P, Chen S (2010). How big is a big odds ratio?",
       "Interpreting the magnitudes of odds ratios in epidemiological studies.",
       "Communications in Statistics - Simulation and Computation",
-      "39(4):860-864. These odds ratios correspond to d = 0.2, 0.5 and 0.8",
+      "39(4):860-864. doi:10.1080/03610911003650383. These odds ratios",
+      "correspond to d = 0.2, 0.5 and 0.8",
       "only when the event rate in the reference group is 1%; the equivalent",
-      "odds ratios are smaller at higher baseline risks."
+      "odds ratios are smaller at higher baseline risks. The published values",
+      "are for OR > 1; the boundaries below 1 (1/1.74, 1/4.28, 1/11.40) apply",
+      "the same method to negative d. Use chen_or_thresholds() for other",
+      "baseline risks."
     )
   )
 )
@@ -221,7 +262,11 @@ benchmark_sets <- list(
 #'
 #' `"chen_or"` is tied to a 1% event rate in the reference group: Chen et
 #' al. (2010) show that the odds ratio equivalent to a given d depends on
-#' the baseline risk, and is smaller when the baseline risk is higher.
+#' the baseline risk, and is smaller when the baseline risk is higher. Use
+#' [chen_or_thresholds()] for other baseline risks. Under their method the
+#' zones are not symmetric on the log scale: the published values are the
+#' boundaries above 1, and the boundaries below 1 (1/1.74, 1/4.28, 1/11.40)
+#' are computed by applying the method to negative d.
 #'
 #' @param set Name of the benchmark set. If missing, the available sets are
 #'   printed and returned invisibly.
@@ -229,10 +274,10 @@ benchmark_sets <- list(
 #'   invisible character vector of set names.
 #' @references
 #' Cohen J (1988). *Statistical Power Analysis for the Behavioral Sciences*,
-#' 2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+#' 2nd ed. Hillsdale, NJ: Lawrence Erlbaum. \doi{10.4324/9780203771587}
 #'
 #' Sawilowsky SS (2009). New effect size rules of thumb. *Journal of Modern
-#' Applied Statistical Methods* 8(2):597-599.
+#' Applied Statistical Methods* 8(2):597-599. \doi{10.22237/jmasm/1257035100}
 #'
 #' Funder DC, Ozer DJ (2019). Evaluating effect size in psychological
 #' research: sense and nonsense. *Advances in Methods and Practices in
@@ -244,7 +289,7 @@ benchmark_sets <- list(
 #'
 #' Chen H, Cohen P, Chen S (2010). How big is a big odds ratio? Interpreting
 #' the magnitudes of odds ratios in epidemiological studies. *Communications
-#' in Statistics - Simulation and Computation* 39(4):860-864.
+#' in Statistics - Simulation and Computation* 39(4):860-864. \doi{10.1080/03610911003650383}
 #' @seealso [es_thresholds()], [geom_es_zones()]
 #' @export
 #' @examples
@@ -261,5 +306,6 @@ es_benchmarks <- function(set) {
   }
   set <- rlang::arg_match(set, names(benchmark_sets))
   b <- benchmark_sets[[set]]
-  new_es_thresholds(b$cuts, b$labels, b$metric, b$source, title = b$title)
+  new_es_thresholds(b$cuts, b$labels, b$metric, b$source, title = b$title,
+                    cuts_lower = b$cuts_lower)
 }

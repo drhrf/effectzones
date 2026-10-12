@@ -31,6 +31,17 @@ StatZones <- ggplot2::ggproto("StatZones", ggplot2::Stat,
     seg$.hi <- pmax(lo, hi)
     seg <- seg[!bad, , drop = FALSE]
     seg$lo <- seg$hi <- NULL
+    if (!isTRUE(expand) && !is.null(sc)) {
+      # Keep only zones that reach the visible range, so the legend lists
+      # just the zones present in the plot.
+      rng <- visible_range(sc)
+      if (all(is.finite(rng))) {
+        seg <- seg[seg$.hi > rng[1] & seg$.lo < rng[2], , drop = FALSE]
+      }
+    }
+    # A factor in legend order keeps the legend order fixed; unused levels
+    # are dropped by the scale.
+    seg$zone <- factor(seg$zone, levels = names(spec$legend))
     names(seg)[names(seg) == "fill"] <- ".fill"
     seg$PANEL <- data$PANEL[1]
     seg$group <- -1L
@@ -41,6 +52,16 @@ StatZones <- ggplot2::ggproto("StatZones", ggplot2::Stat,
     seg
   }
 )
+
+# Range of a continuous position scale including its expansion, from the
+# data trained so far. Coordinate limits (coord_cartesian(xlim)) are not
+# known at this stage; zones are clipped to them at draw time.
+visible_range <- function(scale) {
+  expand <- scale$expand
+  if (inherits(expand, "waiver")) expand <- ggplot2::expansion(mult = 0.05)
+  out <- tryCatch(scale$dimension(expand), error = function(e) c(NA, NA))
+  sort(out)
+}
 
 # Apply a position scale's transformation, keeping infinite ends infinite.
 transform_position_vec <- function(x, scale) {
@@ -202,7 +223,7 @@ build_zones <- function(object) {
     thr <- to_plot_scale(a$mcid, sd = a$sd)
     spec <- mcid_zone_spec(thr, null = a$null, softness = a$softness,
                            beyond = a$beyond, palette = a$palette,
-                           title = a$title)
+                           title = a$title, role_labels = a$role_labels)
     geom <- GeomMcidZones
     aes_name <- "mcid_zone"
   }
@@ -223,8 +244,7 @@ build_zones <- function(object) {
   scale <- ggplot2::scale_discrete_manual(
     aesthetics = aes_name,
     values = spec$legend,
-    limits = names(spec$legend),
-    breaks = names(spec$legend),
+    drop = TRUE,
     name = spec$title,
     guide = ggplot2::guide_legend(order = 99)
   )

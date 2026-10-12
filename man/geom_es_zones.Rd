@@ -18,6 +18,7 @@ geom_es_zones(
   label_size = 3,
   label_colour = "grey20",
   n_slices = 40,
+  zone_labels = NULL,
   title = NULL,
   show.legend = NA,
   ...
@@ -59,6 +60,12 @@ top (effect on the horizontal axis) or the right edge (vertical axis).}
 \item{n_slices}{Number of thin rectangles used to draw each soft
 transition.}
 
+\item{zone_labels}{Optional new names for the zones, for example
+\code{"below small"} instead of \code{"negligible"}. Either a character vector
+(or list) with one name per zone, from the null outwards
+(\code{c("below small", "small", "medium", "large")}), or a named vector
+that renames only some zones (\code{c(negligible = "below small")}).}
+
 \item{title}{Legend title. Defaults to the short source of the thresholds.}
 
 \item{show.legend}{Should the zone legend be shown?}
@@ -70,7 +77,8 @@ An object that can be added to a ggplot with \code{+}.
 }
 \description{
 Draws background bands for effect-size magnitude zones ("negligible",
-"small", "medium", ...), symmetric around the null, behind estimates and
+"small", "medium", ...) around the null (symmetric unless the thresholds
+set \code{cuts_lower}), behind estimates and
 confidence intervals. The layer draws a reference background only: it
 does not look at, classify or test any estimate.
 }
@@ -142,11 +150,11 @@ ggplot(or, aes(estimate, term)) +
 }
 \references{
 Cohen J (1988). \emph{Statistical Power Analysis for the Behavioral Sciences},
-2nd ed. Hillsdale, NJ: Lawrence Erlbaum.
+2nd ed. Hillsdale, NJ: Lawrence Erlbaum. \doi{10.4324/9780203771587}
 
 Chinn S (2000). A simple method for converting an odds ratio to effect
 size for use in meta-analysis. \emph{Statistics in Medicine}
-19(22):3127-3131.
+19(22):3127-3131. \doi{10.1002/1097-0258(20001130)19:22<3127::AID-SIM784>3.0.CO;2-M}
 }
 \seealso{
 \code{\link[=geom_mcid_zones]{geom_mcid_zones()}}, \code{\link[=plot_contrasts]{plot_contrasts()}}

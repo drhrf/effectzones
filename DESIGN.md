@@ -54,40 +54,69 @@ implemented and documented.
   the null (`lower < 0 < upper`); `direction` decides which side is
   benefit. A length-2 value is an uncertain threshold, drawn as a fade
   across the range. `beyond = "multiples"` deepens the colour at 2x and 3x
-  the MCID (the midpoint, for ranges), capped at 3x.
-* **MCID default palette.** The specification listed `palette = "grey"` in
-  the `geom_mcid_zones()` signature but described the default as a muted
-  colourblind-safe diverging pair. The default is the diverging palette
-  (`"diverging"`, blue/orange with a neutral centre); `"grey"` is available
-  and documented with the recommendation to use `labels = TRUE`.
-  **Open question:** confirm which default is wanted.
+  the MCID, capped at 3x. It requires point thresholds: with a range MCID
+  the multiples would be uncertain as well, and sharp lines at 2x/3x would
+  overstate precision, so the combination is an error (decided by the
+  author over fading the multiples, which overlap for wide ranges).
+* **MCID default palette:** the muted blue/orange diverging palette
+  (`"diverging"`), confirmed by the author; `"grey"` remains available with
+  `labels = TRUE` recommended.
 * **Zone labels** (`labels = TRUE`) are dropped at draw time when the text
   does not fit inside its zone, rather than overlapping.
-* **`plot_contrasts()` and the SD.** `TukeyHSD` objects and data frames do
-  not carry their model, so the SD comes from an explicit `model =`
-  argument; `emmGrid` objects from `emmeans()` carry `sigma`, but grids from
-  `contrast()`/`pairs()` do not, so they also need `model =` (the emmeans
-  grid or the fit). The function never refits a model from a stored call.
+* **`plot_contrasts()` and the SD.** Standardised thresholds over raw
+  differences need an SD. The model's residual SD is used automatically
+  only for a one-way, fixed-effects, unweighted linear model, where it is
+  the pooled within-group SD (the conventional denominator of d, under the
+  same equal-variance assumption as the ANOVA and Tukey intervals). With
+  more terms the residual SD has every other term's variance removed:
+  right for manipulated factors, too small for measured factors and
+  covariates, and the model does not record which is which. The function
+  stops with an error that teaches the procedure: decide what SD the
+  benchmark refers to; prefer an external pre-specified SD; otherwise refit
+  with only the manipulated factors (Olejnik & Algina 2003 generalized
+  standardizer); report the SD's sampling uncertainty. The model can come
+  from an `aov` fit, an emmeans grid of
+  means (which carries `sigma`), or a `TukeyHSD` object: its stored call is
+  re-evaluated in the calling environment and the refit is accepted only if
+  it reproduces the Tukey contrasts exactly. emmeans contrast grids drop
+  `sigma`, so they need `model =` or `sd`.
+* **Chen et al. odds ratios.** `chen_or_thresholds(baseline_risk)`
+  implements p1 = Phi(Phi^-1(p0) + d) and OR = odds(p1) / odds(p0); it
+  reproduces the published 1% and 5% rows. Under this model the protective
+  side is not the reciprocal of the harmful side (except at p0 = 0.5), so
+  the boundaries below 1 are computed from negative d (`cuts_lower`). The
+  published values cover only OR > 1; the lower side in
+  `es_benchmarks("chen_or")` (1.74, 4.28, 11.40, rounded) is computed, not
+  published, and the source text says so.
+* **Legend shows only visible zones.** The stat drops zones that lie
+  entirely outside the axis range trained so far (including the scale's
+  expansion). Coordinate limits (`coord_cartesian(xlim)`) and ranges
+  created later by other layers' stats are not known at that stage, so in
+  those cases the legend can list a zone that is clipped away.
+* **Renaming zones:** `zone_labels` on both layers, either a full unnamed
+  vector/list or a named partial mapping.
 * Extra arguments beyond the specification: `label_size`, `label_colour`,
-  `n_slices`, `title`, `show.legend` on both layers; `mcid` (symmetric
+  `n_slices`, `zone_labels`, `title`, `show.legend` on both layers;
+  `cuts_lower` on `es_thresholds()`; `chen_or_thresholds()`; `mcid` (symmetric
   shorthand) on `mcid_thresholds()`; `direction` on `mcid_distribution()`;
-  `which`, `model`, `null`, `xlab` on `plot_contrasts()` methods.
+  `which`, `model`, `null`, `xlab`, `conf.level` on `plot_contrasts()`
+  methods, and an `aov` method.
 
 ## Open questions
 
-* Is the residual SD the right default for converting d over ANOVA
-  contrasts, or should `plot_contrasts()` refuse to guess and require `sd`?
-  Currently it uses `pooled_sd(model)` only when `model` is passed, and
-  says so.
-* Multiples for an uncertain (range) MCID use the midpoint. Alternatives:
-  fade the multiples too, or omit multiples for ranges.
-* Should zones outside the visible panel be dropped from the legend? They
-  are kept so the legend always shows the full scheme in a fixed order.
-* `"chen_or"` is tied to a 1% baseline risk. A function that returns the
-  Chen et al. equivalents for other baseline risks would be more honest,
-  but needs their method implemented and checked.
-* Labels for the innermost zone ("negligible") are this package's
-  convention, not the sources'. Some users may prefer "below small".
+* **Drawing the SD's sampling uncertainty** (step 4 of the SD procedure).
+  The boundaries d x SD could fade across d x [lower, upper] of the SD's
+  confidence interval (chi-square interval on the residual df), reusing the
+  range-MCID fade. Not implemented; the error message and vignette tell
+  users to report it.
+* **A `measured =` helper**, e.g. `pooled_sd(model, measured = "sex")`,
+  that refits without the named terms. Currently users call
+  `pooled_sd(update(model, . ~ treatment))` themselves.
+
+* Some users may prefer that `chen_or_thresholds()` also accept the
+  baseline risk of the exposed group (i.e. odds ratios expressed the other
+  way round); currently `baseline_risk` must refer to the reference
+  (denominator) group.
 
 ## Unfinished / known limitations
 
@@ -109,6 +138,7 @@ implemented and documented.
   tested.
 * Seams between transition slices: with semi-transparent fills, some PDF
   viewers may show hairlines between adjacent slices at extreme zoom.
-* DOIs are given only where they were verified against a bibliographic
-  record (Funder & Ozer 2019; Gignac & Szodorai 2016; Jaeschke et al.
-  1989). Other references are cited without DOIs.
+* DOIs for all cited references are included. Funder & Ozer (2019),
+  Gignac & Szodorai (2016) and Jaeschke et al. (1989) were verified against
+  bibliographic records during development; the others were supplied by
+  the author.

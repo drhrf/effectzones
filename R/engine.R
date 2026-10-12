@@ -48,6 +48,8 @@ soft_bounds <- function(at, softness) {
 es_zone_spec <- function(thr, null, softness, palette, title = NULL) {
   multiplicative <- identical(thr$scale, "log")
   u <- if (multiplicative) log(thr$cuts) else thr$cuts
+  u_lower <- thr$cuts_lower %||% thr$cuts
+  if (multiplicative) u_lower <- log(u_lower)
   m <- length(u)
   cols <- es_palette(palette, m + 1)
   idx <- c(m:1, 0, 1:m) # zone index in axis order
@@ -58,7 +60,7 @@ es_zone_spec <- function(thr, null, softness, palette, title = NULL) {
     colour = cols[idx + 1],
     stringsAsFactors = FALSE
   )
-  boundaries <- soft_bounds(c(-rev(u), u), softness)
+  boundaries <- soft_bounds(c(-rev(u_lower), u), softness)
   legend <- stats::setNames(cols, thr$labels)
   new_zone_spec(
     zones, boundaries,
@@ -75,7 +77,10 @@ es_title <- function(thr) {
 mcid_multiple_cap <- 3L
 
 # MCID zones: harm / trivial / benefit, optionally graded in multiples.
-mcid_zone_spec <- function(thr, null, softness, beyond, palette, title = NULL) {
+mcid_zone_spec <- function(thr, null, softness, beyond, palette, title = NULL,
+                           role_labels = NULL) {
+  role_labels <- role_labels %||%
+    c(harm = "harm", trivial = "trivial", benefit = "benefit")
   pal <- mcid_palette(palette)
   benefit_upper <- thr$direction == "higher_better"
   side_name <- if (benefit_upper) c(lower = "harm", upper = "benefit") else
@@ -84,6 +89,7 @@ mcid_zone_spec <- function(thr, null, softness, beyond, palette, title = NULL) {
 
   one_side <- function(thresh, side) {
     role <- side_name[[side]]
+    # A range (uncertain MCID) has no multiples; see geom_mcid_zones().
     at <- mean(thresh)
     first <- if (length(thresh) == 2) {
       data.frame(at = at, lo = min(thresh), hi = max(thresh))
@@ -97,11 +103,12 @@ mcid_zone_spec <- function(thr, null, softness, beyond, palette, title = NULL) {
                                   scales::colour_ramp(c(pal[[role]], "#000000"))(0.5)))
     t <- if (cap > 1) 0.5 + 0.5 * (levels - 1) / (cap - 1) else 0.5
     labels <- if (cap > 1) {
-      c(paste0(role, " (1\u{2013}2\u{00d7} MCID)"),
-        if (cap > 2) paste0(role, " (", seq(2, cap - 1), "\u{2013}", seq(3, cap), "\u{00d7} MCID)"),
-        paste0(role, " (\u{2265}", cap, "\u{00d7} MCID)"))
+      shown <- role_labels[[role]]
+      c(paste0(shown, " (1\u{2013}2\u{00d7} MCID)"),
+        if (cap > 2) paste0(shown, " (", seq(2, cap - 1), "\u{2013}", seq(3, cap), "\u{00d7} MCID)"),
+        paste0(shown, " (\u{2265}", cap, "\u{00d7} MCID)"))
     } else {
-      role
+      role_labels[[role]]
     }
     zones <- data.frame(label = labels, side = side, intensity = t,
                         colour = ramp(t), stringsAsFactors = FALSE)
@@ -112,7 +119,7 @@ mcid_zone_spec <- function(thr, null, softness, beyond, palette, title = NULL) {
   # lower side: boundaries and zones run outwards, so reverse for axis order
   lo$b <- lo$b[rev(seq_len(nrow(lo$b))), , drop = FALSE]
   lo$zones <- lo$zones[rev(seq_len(nrow(lo$zones))), , drop = FALSE]
-  centre <- data.frame(label = "trivial", side = "centre", intensity = 0,
+  centre <- data.frame(label = role_labels[["trivial"]], side = "centre", intensity = 0,
                        colour = pal[["trivial"]], stringsAsFactors = FALSE)
   zones <- rbind(lo$zones, centre, hi$zones)
   boundaries <- rbind(lo$b, hi$b)
@@ -124,7 +131,7 @@ mcid_zone_spec <- function(thr, null, softness, beyond, palette, title = NULL) {
   harm_z <- harm_z[order(-harm_z$intensity), ]
   ben_z <- ben_z[order(ben_z$intensity), ]
   legend <- c(stats::setNames(harm_z$colour, harm_z$label),
-              trivial = pal[["trivial"]],
+              stats::setNames(pal[["trivial"]], role_labels[["trivial"]]),
               stats::setNames(ben_z$colour, ben_z$label))
   new_zone_spec(zones, boundaries, transform = "additive", null = null,
                 legend = legend, title = title %||% mcid_title(thr))

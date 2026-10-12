@@ -3,6 +3,7 @@
 \name{plot_contrasts}
 \alias{plot_contrasts}
 \alias{plot_contrasts.data.frame}
+\alias{plot_contrasts.aov}
 \alias{plot_contrasts.TukeyHSD}
 \alias{plot_contrasts.emmGrid}
 \title{Forest-style plot of contrasts over interpretive zones}
@@ -18,14 +19,23 @@ plot_contrasts(x, zones = NULL, ...)
   xlab = "Difference"
 )
 
+\method{plot_contrasts}{aov}(
+  x,
+  zones = NULL,
+  ...,
+  which = NULL,
+  conf.level = 0.95,
+  xlab = NULL
+)
+
 \method{plot_contrasts}{TukeyHSD}(x, zones = NULL, ..., which = NULL, model = NULL, xlab = NULL)
 
 \method{plot_contrasts}{emmGrid}(x, zones = NULL, ..., model = NULL, xlab = NULL)
 }
 \arguments{
-\item{x}{A \code{TukeyHSD} object, an \code{emmGrid} of contrasts (e.g. from
-\code{emmeans::contrast()} or \code{pairs()}), or a data frame with columns
-\code{term}, \code{estimate}, \code{lower}, \code{upper}.}
+\item{x}{An \code{aov} fit, a \code{TukeyHSD} object, an \code{emmGrid} (of means or of
+contrasts), or a data frame with columns \code{term}, \code{estimate}, \code{lower},
+\code{upper}.}
 
 \item{zones}{A zones layer from \code{\link[=geom_es_zones]{geom_es_zones()}} or \code{\link[=geom_mcid_zones]{geom_mcid_zones()}},
 or \code{NULL}.}
@@ -33,16 +43,19 @@ or \code{NULL}.}
 \item{...}{Passed to methods. For \code{emmGrid}, passed to \code{confint()} (e.g.
 \code{level}, \code{adjust}).}
 
-\item{model}{A fitted model used to fill a missing \code{sd} in \code{zones}
-(\code{TukeyHSD} objects and data frames do not carry their model).}
+\item{model}{A fitted model (or, for emmeans contrasts, the emmeans grid
+of means) used to fill a missing \code{sd} in \code{zones}.}
 
 \item{null}{Position of the null (reference line). Defaults to 0, or 1 for
 ratios from emmeans.}
 
 \item{xlab}{Axis title for the difference axis.}
 
-\item{which}{For \code{TukeyHSD}: the term(s) to plot. Default all; several
-terms are shown in separate panels.}
+\item{which}{For \code{aov} and \code{TukeyHSD}: the term(s) to plot. Default all;
+several terms are shown in separate panels.}
+
+\item{conf.level}{For \code{aov}: family-wise confidence level of the Tukey
+intervals.}
 }
 \value{
 A ggplot object.
@@ -53,24 +66,70 @@ points with confidence-interval bars and a reference line at the null.
 A zones layer from \code{\link[=geom_es_zones]{geom_es_zones()}} or \code{\link[=geom_mcid_zones]{geom_mcid_zones()}}, if given, is
 drawn first, behind everything else.
 }
-\details{
-If the zones need an SD (standardised \code{"d"} thresholds drawn over raw
-differences) and none was given, it is taken from the model:
-\code{\link[=pooled_sd]{pooled_sd()}} of \code{model}, or of \code{x} itself for \code{emmGrid} objects. A
-message says so. Without a model, an error asks for \code{sd}.
+\section{Which SD converts d to the raw scale}{
+
+Standardised (\code{"d"}) thresholds must be multiplied by an SD before they
+can be drawn over raw differences. \code{plot_contrasts()} takes that SD from
+the fitted model only when the choice is not an extra assumption:
+\itemize{
+\item \strong{One-way, fixed-effects, unweighted linear model} (e.g.
+\code{aov(y ~ group)}): the residual SD is the pooled within-group SD, the
+usual denominator of Cohen's d. It is the same quantity the ANOVA and
+the Tukey intervals already rely on (equal variances). It is used
+automatically and a message reports its value.
+\item \strong{Anything else} (several factors, covariates, interactions,
+weights, GLMs): the residual SD has the variance of every other term
+removed. That is right for manipulated (randomised) factors and too
+small for measured factors and covariates, and the model does not
+record which is which. The function stops and explains the rigorous
+procedure: (1) decide what SD the benchmark refers to, before seeing
+results; (2) preferably use an external, pre-specified SD; (3)
+otherwise refit with only the manipulated factors and use that
+residual SD (Olejnik & Algina 2003), e.g.
+\code{sd = pooled_sd(update(model, . ~ treatment))}; if every term was
+manipulated, \code{sd = pooled_sd(model)}; (4) report the SD's own
+uncertainty.
 }
+}
+
+\section{Where the model comes from}{
+
+\itemize{
+\item \code{aov} fits: pass the fit itself; Tukey contrasts are computed from it.
+\item \code{TukeyHSD} objects store the call that fitted the model but not the
+model. When an SD is needed and \code{model} is not given, the call is
+re-evaluated in the calling environment, and the refitted model is used
+only if its Tukey contrasts reproduce \code{x} exactly; otherwise an error
+asks for \code{model}. A message says when this happens.
+\item \code{emmGrid} of estimated means (from \code{emmeans()}): pairwise contrasts are
+computed (\code{emmeans::contrast(method = "pairwise")}, Tukey-adjusted), and
+the grid's own residual SD is used.
+\item \code{emmGrid} of contrasts (from \code{contrast()} or \code{pairs()}): emmeans does not
+keep the residual SD in contrast grids, so pass the means grid or the
+fit as \code{model}, or set \code{sd}.
+}
+}
+
 \examples{
 fit <- aov(weight ~ group, data = PlantGrowth)
-plot_contrasts(TukeyHSD(fit))
+plot_contrasts(fit)
 
-plot_contrasts(TukeyHSD(fit),
-               zones = geom_es_zones(es_benchmarks("cohen_d")),
-               model = fit)
+# The residual SD of the one-way model converts d to raw differences
+plot_contrasts(fit, zones = geom_es_zones(es_benchmarks("cohen_d")))
 
-plot_contrasts(TukeyHSD(fit),
+# A TukeyHSD object works too: its model is refitted and checked
+tk <- TukeyHSD(fit)
+plot_contrasts(tk, zones = geom_es_zones(es_benchmarks("cohen_d")))
+
+plot_contrasts(fit,
                zones = geom_mcid_zones(mcid_thresholds(lower = -0.3,
                                                        upper = c(0.4, 0.6))))
 }
+\references{
+Olejnik S, Algina J (2003). Generalized eta and omega squared statistics:
+measures of effect size for some common research designs. \emph{Psychological
+Methods} 8(4):434-447. \doi{10.1037/1082-989X.8.4.434}
+}
 \seealso{
-\code{\link[=geom_es_zones]{geom_es_zones()}}, \code{\link[=geom_mcid_zones]{geom_mcid_zones()}}
+\code{\link[=geom_es_zones]{geom_es_zones()}}, \code{\link[=geom_mcid_zones]{geom_mcid_zones()}}, \code{\link[=pooled_sd]{pooled_sd()}}
 }

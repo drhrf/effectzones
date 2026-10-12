@@ -19,8 +19,8 @@
       print(x)
     Message
       <es_thresholds> on the "d" scale
-      a: |effect| in [0, 0.1)
-      b: |effect| in [0.1, 0.3)
-      c: |effect| in [0.3, Inf)
+      a: magnitude in [0, 0.1)
+      b: magnitude in [0.1, 0.3)
+      c: magnitude in [0.3, Inf)
       Source: Me
 

@@ -1,6 +1,20 @@
 url: https://drhrf.github.io/effectzones/
 template:
   bootstrap: 5
+  bootswatch: flatly
+  math-rendering: katex
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+
+articles:
+  - title: "Guides"
+    navbar: ~
+    contents:
+      - effectzones
+      - articles/mathematics
 
 reference:
   - title: Layers
@@ -12,6 +26,7 @@ reference:
     contents:
       - es_thresholds
       - es_benchmarks
+      - chen_or_thresholds
   - title: MCID thresholds
     contents:
       - mcid_thresholds
@@ -23,9 +38,3 @@ reference:
   - title: Package
     contents:
       - effectzones-package
-
-articles:
-  - title: Articles
-    navbar: ~
-    contents:
-      - effectzones

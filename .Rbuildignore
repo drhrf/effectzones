@@ -5,3 +5,5 @@
 ^pkgdown$
 ^\.github$
 ^DESIGN\.md$
+^data-raw$
+^vignettes/articles$

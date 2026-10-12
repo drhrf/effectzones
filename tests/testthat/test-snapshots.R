@@ -20,12 +20,19 @@ test_that("MCID mode: symmetric, hard edges", {
   expect_zones_snapshot("mcid-symmetric-hard", p)
 })
 
-test_that("MCID mode: asymmetric range-based soft edges, multiples", {
+test_that("MCID mode: asymmetric, range-based soft edges", {
   thr <- mcid_thresholds(lower = -0.25, upper = c(0.3, 0.5),
                          source = "Two anchor studies")
+  p <- forest(tukey_df(), geom_mcid_zones(thr)) +
+    ggplot2::theme_minimal()
+  expect_zones_snapshot("mcid-asymmetric-range", p)
+})
+
+test_that("MCID mode: asymmetric point thresholds, multiples", {
+  thr <- mcid_thresholds(lower = -0.25, upper = 0.3)
   p <- forest(tukey_df(), geom_mcid_zones(thr, beyond = "multiples")) +
     ggplot2::theme_minimal()
-  expect_zones_snapshot("mcid-asymmetric-range-multiples", p)
+  expect_zones_snapshot("mcid-asymmetric-multiples", p)
 })
 
 test_that("MCID mode: provisional distribution-based legend", {

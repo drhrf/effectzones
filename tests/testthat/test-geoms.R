@@ -21,6 +21,13 @@ test_that("argument checks fail early", {
   expect_error(geom_es_zones(b, alpha = 2), "alpha")
   expect_error(geom_es_zones(es_benchmarks("cohen_r"), sd = 2), "own scale")
   expect_error(geom_mcid_zones(1, softness = -1), "softness")
+  expect_error(
+    geom_mcid_zones(mcid_thresholds(lower = -1, upper = c(2, 3)), beyond = "multiples"),
+    "needs point MCID thresholds"
+  )
+  expect_error(geom_mcid_zones(c(1, 2), beyond = "multiples"), "range")
+  expect_s3_class(geom_mcid_zones(mcid_thresholds(lower = -1, upper = c(2, 3))),
+                  "effectzones_zones")
 })
 
 test_that("zones do not change the axis range unless expand = TRUE", {
@@ -92,7 +99,10 @@ test_that("zones work on a log10 axis (odds ratios)", {
   ld <- ggplot2::layer_data(p, 1)
   bounds <- sort(unique(c(ld$.lo, ld$.hi)))
   bounds <- bounds[is.finite(bounds)]
-  expect_equal(bounds, sort(log10(c(1 / c(1.68, 3.47, 6.71), 1.68, 3.47, 6.71))))
+  all_bounds <- log10(c(1 / c(1.74, 4.28, 11.40), 1.68, 3.47, 6.71))
+  # zones wholly outside the visible range are dropped
+  expect_true(all(sapply(bounds, function(b) any(abs(b - all_bounds) < 1e-12))))
+  expect_true(all(log10(c(1.68, 3.47, 6.71)) %in% bounds))
   expect_equal(x_range(p), log10(range(c(or_df()$lower, or_df()$upper))))
   expect_no_error(ggplot2::ggplotGrob(p))
 })
@@ -135,4 +145,52 @@ test_that("zones do not interfere with a fill scale used by other layers", {
     ggplot2::geom_point(ggplot2::aes(fill = term), shape = 21)
   b <- ggplot2::ggplot_build(p)
   expect_setequal(b$plot$scales$get_scales("fill")$get_limits(), df$term)
+})
+
+test_that("zone_labels renames zones, fully or partly", {
+  thr <- es_benchmarks("cohen_d")
+  z <- geom_es_zones(thr, sd = 0.6,
+                     zone_labels = c("below small", "small", "medium", "large"))
+  expect_identical(z$args$thresholds$labels[1], "below small")
+  z2 <- geom_es_zones(thr, sd = 0.6, zone_labels = list(negligible = "below small"))
+  expect_identical(z2$args$thresholds$labels, c("below small", "small", "medium", "large"))
+  expect_error(geom_es_zones(thr, zone_labels = c("a", "b")), "all 4 zones")
+  expect_error(geom_es_zones(thr, zone_labels = c(tiny = "a")), "Unknown zone name")
+  expect_error(geom_es_zones(thr, zone_labels = c("a", "a", "b", "c")), "unique")
+
+  p <- forest(tukey_df(), geom_es_zones(thr, sd = 0.6,
+                                        zone_labels = c(negligible = "below small")))
+  sc <- ggplot2::ggplot_build(p)$plot$scales$get_scales("es_zone")
+  expect_true("below small" %in% sc$get_limits())
+
+  m <- geom_mcid_zones(0.4, zone_labels = c("worse", "no important change", "better"),
+                       beyond = "multiples")
+  p2 <- forest(tukey_df(), m)
+  lim <- ggplot2::ggplot_build(p2)$plot$scales$get_scales("mcid_zone")$get_limits()
+  expect_true("no important change" %in% lim)
+  expect_true(any(grepl("^better \\(", lim)))
+  expect_false(any(grepl("benefit|harm|trivial", lim)))
+})
+
+test_that("the legend lists only zones present in the panel", {
+  # estimates span about -1.1 to 1.6; with sd = 2 the cuts are at 0.4, 1, 1.6
+  p <- forest(tukey_df(), geom_es_zones(es_benchmarks("cohen_d"), sd = 2,
+                                        softness = 0))
+  lim <- ggplot2::ggplot_build(p)$plot$scales$get_scales("es_zone")$get_limits()
+  expect_identical(lim, c("negligible", "small", "medium", "large"))
+
+  p2 <- forest(tukey_df(), geom_es_zones(es_benchmarks("cohen_d"), sd = 10,
+                                         softness = 0))
+  lim2 <- ggplot2::ggplot_build(p2)$plot$scales$get_scales("es_zone")$get_limits()
+  expect_identical(lim2, "negligible")
+
+  m <- forest(tukey_df(), geom_mcid_zones(mcid_thresholds(lower = -5, upper = 0.5)))
+  lim3 <- ggplot2::ggplot_build(m)$plot$scales$get_scales("mcid_zone")$get_limits()
+  expect_identical(lim3, c("trivial", "benefit"))
+
+  # expand = TRUE shows every zone
+  e <- forest(tukey_df(), geom_mcid_zones(mcid_thresholds(lower = -5, upper = 0.5),
+                                          expand = TRUE))
+  lim4 <- ggplot2::ggplot_build(e)$plot$scales$get_scales("mcid_zone")$get_limits()
+  expect_identical(lim4, c("harm", "trivial", "benefit"))
 })
