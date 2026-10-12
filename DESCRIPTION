@@ -1,0 +1,37 @@
+Package: effectzones
+Title: Interpretive Background Zones for Estimates and Confidence Intervals
+Version: 0.0.0.9000
+Authors@R: 
+    person("drhrf", , , "labinfos.uerj@gmail.com", role = c("aut", "cre"))
+Description: A 'ggplot2' extension that draws interpretive background zones
+    behind estimates and confidence intervals in forest plots, post-hoc
+    contrast plots and coefficient plots. Two modes are provided:
+    effect-size magnitude zones based on published benchmark sets (e.g.
+    Cohen, 1988, ISBN:0-8058-0283-5) and clinical relevance zones based on a
+    minimal clinically important difference (Jaeschke, Singer and Guyatt,
+    1989 <doi:10.1016/0197-2456(89)90005-6>). The package does not compute,
+    classify or reinterpret inference; it only draws a background against
+    which existing estimates and intervals are read.
+License: MIT + file LICENSE
+URL: https://github.com/drhrf/effectzones, https://drhrf.github.io/effectzones/
+BugReports: https://github.com/drhrf/effectzones/issues
+Depends: 
+    R (>= 4.1.0)
+Imports: 
+    cli,
+    ggplot2 (>= 3.5.0),
+    grid,
+    rlang,
+    scales,
+    stats
+Suggests: 
+    emmeans,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    vdiffr
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
